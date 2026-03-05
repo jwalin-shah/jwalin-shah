@@ -1,30 +1,21 @@
-# Hi, I'm Jwalin Shah
+## Jwalin Shah
 
-I build local-first AI systems focused on privacy, reliability, and practical performance.
+**AI Systems Engineer** — Privacy-First SLMs & Robotics Systems
 
-## Selected Projects
+Building local-first AI systems on Apple Silicon. Previously scaled robotics data operations at [Skild AI](https://www.skild.ai/).
 
-### 1) Personal Context (system vision)
-- Thesis: users should be able to convert fragmented platform exports into usable, user-controlled context products.
-- Public implementation pieces:
-  - [Data Connect Framework](https://github.com/jwalin-shah/data-connect-framework) ([Case Study](https://github.com/jwalin-shah/data-connect-framework/blob/main/CASE_STUDY.md))
-  - [JARVIS AI Assistant](https://github.com/jwalin-shah/jarvis-ai-assistant) ([Case Study](https://github.com/jwalin-shah/jarvis-ai-assistant/blob/main/CASE_STUDY.md))
+### Current Work
 
-### 2) Data Connect Framework
-- Ingestion/normalization/canonicalization/views pipeline for connector and full-export data.
-- Focus: turning raw exports into stable data products for downstream assistants.
-- Repo: [data-connect-framework](https://github.com/jwalin-shah/data-connect-framework)
+- **[Jarvis](https://github.com/jwalin-shah/jarvis-ai-assistant)** — Local-first iMessage AI assistant running entirely on an 8GB M2 MacBook Air. MLX inference, hybrid retrieval (BM25 + embeddings + cross-encoder), custom evaluation harness across 37 model configurations. 0.42s mean latency, <5% hallucination rate, zero cloud dependencies.
 
-### 3) JARVIS AI Assistant
-- Local-first assistant runtime with retrieval, prompt routing, and reliability gates.
-- Focus: deterministic-first execution + measurable quality/latency.
-- Repo: [jarvis-ai-assistant](https://github.com/jwalin-shah/jarvis-ai-assistant)
+- **[Personal Data Engine](https://github.com/jwalin-shah/personal-assistant)** — Privacy-first knowledge graph for personal context. Schema-driven ingestion pipelines (JSONL/NDJSON → SQLite + sqlite-vec), local SLM reasoning (Qwen family), staged multimodal memory architecture for constrained hardware.
 
-### 4) Squat Coach (on-device)
-- Realtime on-device squat coaching pipeline and evaluation tooling.
-- Repo: [squat-coach](https://github.com/jwalin-shah/squat-coach)
+- **Squat Coach** — On-device biomechanics agent using MediaPipe pose estimation + temporal smoothing for real-time coaching feedback on consumer hardware.
 
-## What I’m Focused On
-- Better data quality and temporal profile assembly for personal context systems.
-- Model-specific prompt/instruction optimization and eval discipline.
-- MLX/local inference optimization under real latency constraints.
+### Focus Areas
+
+On-device inference (MLX/Apple Silicon) · SLM evaluation & routing · Hybrid retrieval systems · Privacy-first data architectures · Robotics data operations
+
+### Links
+
+📄 [LinkedIn](https://linkedin.com/in/jwalin-shah) · 📧 jwalinshah13@gmail.com
