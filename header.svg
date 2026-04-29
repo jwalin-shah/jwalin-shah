@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 280" width="900" height="280" role="img" aria-label="Jwalin Shah — terminal banner">
+  <defs>
+    <style>
+      .bg { fill: #1c1a17; }
+      .frame { fill: #2a2622; }
+      .scan { fill: #3d7040; }
+      text { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace; }
+      .line { font-size: 14px; }
+      .ok { fill: #52a559; font-weight: 600; }
+      .dim { fill: #8a857d; }
+      .accent { fill: #ffd66d; font-weight: 600; }
+      .prompt { fill: #6dc97a; font-weight: 700; }
+      .cmd { fill: #f5efe1; font-weight: 600; }
+      .name { fill: #f5efe1; font-size: 26px; font-weight: 700; font-family: 'Instrument Serif', 'Source Serif 4', Georgia, serif; }
+      .cursor { fill: #ffd66d; }
+      @keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+      .cursor { animation: blink 1s steps(1) infinite; }
+      .l1 { opacity: 0; animation: fade 4s 0.00s forwards; }
+      .l2 { opacity: 0; animation: fade 4s 0.25s forwards; }
+      .l3 { opacity: 0; animation: fade 4s 0.50s forwards; }
+      .l4 { opacity: 0; animation: fade 4s 0.75s forwards; }
+      .l5 { opacity: 0; animation: fade 4s 1.00s forwards; }
+      .l6 { opacity: 0; animation: fade 4s 1.25s forwards; }
+      .l7 { opacity: 0; animation: fade 4s 1.65s forwards; }
+      .l8 { opacity: 0; animation: fade 4s 2.05s forwards; }
+      @keyframes fade { to { opacity: 1; } }
+    </style>
+  </defs>
+
+  
+  <rect class="bg" width="900" height="280" rx="10"></rect>
+  <rect class="frame" width="900" height="28" rx="10"></rect>
+  <rect class="frame" y="18" width="900" height="10"></rect>
+  <circle cx="16" cy="14" r="5" fill="#ff5f57"></circle>
+  <circle cx="34" cy="14" r="5" fill="#ffbd2e"></circle>
+  <circle cx="52" cy="14" r="5" fill="#28c840"></circle>
+  <text x="450" y="18" text-anchor="middle" class="dim" font-size="11">jwalin@personal:~ — zsh</text>
+
+  
+  <g opacity="0.4">
+    <rect class="scan" y="40" width="900" height="1"></rect>
+    <rect class="scan" y="44" width="900" height="1"></rect>
+    <rect class="scan" y="48" width="900" height="1"></rect>
+    <rect class="scan" y="52" width="900" height="1"></rect>
+    <rect class="scan" y="56" width="900" height="1"></rect>
+  </g>
+
+  
+  <g transform="translate(28, 64)">
+    <text class="line l1"><tspan class="ok">[  OK  ]</tspan> <tspan class="dim">mounting /jwalin...</tspan></text>
+    <text y="20" class="line l2"><tspan class="ok">[  OK  ]</tspan> <tspan class="dim">loading 48 repos from origin</tspan></text>
+    <text y="40" class="line l3"><tspan class="ok">[  OK  ]</tspan> <tspan class="dim">MLX runtime online (apple-silicon)</tspan></text>
+    <text y="60" class="line l4"><tspan class="ok">[  OK  ]</tspan> <tspan class="dim">tensor-logic substrate ready</tspan></text>
+    <text y="80" class="line l5"><tspan class="ok">[  OK  ]</tspan> <tspan class="dim">hallucination gate: </tspan><tspan class="accent">96.2%</tspan><tspan class="dim"> pass</tspan></text>
+    <text y="100" class="line l6"><tspan class="ok">[  OK  ]</tspan> <tspan class="dim">privacy boundary: provable</tspan></text>
+
+    <text y="140" class="line l7"><tspan class="prompt">$</tspan> <tspan class="cmd">whoami</tspan></text>
+    <text y="172" class="line l8"><tspan class="name">Jwalin Shah</tspan></text>
+    <text y="196" class="line l8"><tspan class="accent">→ AI Systems Engineer</tspan> <tspan class="dim">· evaluation · grounded reasoning · privacy-first</tspan></text>
+
+    
+    <rect class="cursor" x="100" y="184" width="9" height="14"></rect>
+  </g>
+</svg>
