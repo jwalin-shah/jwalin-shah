@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 320" width="900" height="320" role="img" aria-label="Jwalin Shah — I measure what LLMs do. 3 scalars beat 71M parameters at 0.975 F1.">
+  <defs>
+    <style>
+      .mono { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace; }
+      .prompt { fill: #6dc97a; font-weight: 700; }
+      .cmd    { fill: #f5efe1; font-weight: 600; }
+      .cursor { fill: #6dc97a; }
+      .name   { fill: #f5efe1; font-weight: 700; letter-spacing: -0.5px; }
+      .sub    { fill: #b8c5b1; }
+      .rule   { stroke: #2a352a; stroke-width: 1; }
+      .num    { fill: #ffd66d; font-weight: 700; }
+      .lbl    { fill: #8a957d; }
+      .vs     { fill: #f5efe1; font-weight: 600; }
+      .caveat { fill: #8a957d; font-style: italic; }
+      .reveal { opacity: 0; animation: fade .6s forwards; }
+      .r1 { animation-delay: .05s; } .r2 { animation-delay: .35s; }
+      .r3 { animation-delay: .65s; } .r4 { animation-delay: .95s; }
+      .r5 { animation-delay: 1.45s; }
+      .blink { animation: blink 1s steps(1) infinite; }
+      @keyframes fade  { to { opacity: 1; } }
+      @keyframes blink { 0%,49% { opacity: 1; } 50%,100% { opacity: 0; } }
+      @media (prefers-reduced-motion: reduce) {
+        .reveal { opacity: 1; animation: none; }
+        .blink  { animation: none; }
+      }
+    </style>
+  </defs>
+
+  <rect width="900" height="320" fill="#0e1410" rx="10"></rect>
+
+  
+  <g transform="translate(40, 70)">
+    <text class="mono reveal r1" font-size="16">
+      <tspan class="prompt">$</tspan> <tspan class="cmd">whoami</tspan><tspan class="cursor blink">▌</tspan>
+    </text>
+  </g>
+
+  
+  <text x="40" y="130" class="mono name reveal r2" font-size="32">Jwalin Shah</text>
+
+  
+  <text x="40" y="158" class="mono sub reveal r3" font-size="15">— I measure what LLMs do.</text>
+
+  
+  <line x1="40" y1="186" x2="860" y2="186" class="rule reveal r4"></line>
+
+  
+  <g class="reveal r4" transform="translate(40, 220)">
+    <text class="mono" font-size="22">
+      <tspan class="num">3 scalars</tspan><tspan class="lbl"> · </tspan><tspan class="num">0.975 F1</tspan>
+      <tspan class="vs"> ↓ vs ↑ </tspan>
+      <tspan class="num">71M MLP</tspan><tspan class="lbl"> · </tspan><tspan class="num">0.331 F1</tspan>
+    </text>
+    <text y="26" class="mono caveat" font-size="12">same task (transitive closure). parity remains unlearnable — honestly documented.</text>
+  </g>
+
+  
+  <g class="reveal r5" transform="translate(40, 290)">
+    <text class="mono lbl" font-size="11">ai systems engineer · evaluation, grounded reasoning, on-device inference</text>
+    <text x="860" y="0" text-anchor="end" class="mono prompt" font-size="11">github.com/jwalin-shah</text>
+  </g>
+</svg>
