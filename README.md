@@ -33,7 +33,7 @@ A 3-scalar tensor-logic recurrence vs. a 71M-parameter MLP, same task. `mean F1 
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="stats-dark.svg" />
-  <img src="stats-light.svg" alt="Languages across 19 public repos: Python 81%, TypeScript 6%, Other 13%. 26-week commit heatmap." width="900" />
+  <img src="stats-light.svg" alt="Languages by bytes across 19 public repos: Python 80%, TypeScript 9%, JavaScript 3%, Svelte 3%, Shell 3%, Other 2%. 26-week commit heatmap." width="900" />
 </picture>
 
 </div>
