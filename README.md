@@ -2,7 +2,7 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="hero-dark.svg" />
-  <img src="hero-light.svg" alt="Jwalin Shah — I measure what LLMs do. 3 scalars beat 71M parameters at 0.975 F1 vs 0.331 on transitive closure." width="900" />
+  <img src="hero-light.svg" alt="Jwalin Shah — I measure what LLMs do. Snapshot verified Apr 2026: 3 scalars beat 71M parameters at 0.975 F1 vs 0.331 on transitive closure." width="900" />
 </picture>
 
 </div>
@@ -14,6 +14,8 @@
 ---
 
 ### Selected work
+
+Metric snapshots below are last verified from the linked public repositories in Apr 2026 unless otherwise noted.
 
 **[tensor-logic](https://github.com/jwalin-shah/tensor-logic)** — working through Domingos (2025).
 A 3-scalar tensor-logic recurrence vs. a 71M-parameter MLP, same task. `mean F1 0.975 vs 0.331 · biggest graph 1,532 nodes (sympy) · zero-shot to real Python imports.` Honestly documented limits — parity remains unlearnable.
@@ -33,7 +35,7 @@ A 3-scalar tensor-logic recurrence vs. a 71M-parameter MLP, same task. `mean F1 
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="stats-dark.svg" />
-  <img src="stats-light.svg" alt="Languages by bytes across 19 public repos: Python 80%, TypeScript 9%, JavaScript 3%, Svelte 3%, Shell 3%, Other 2%. 26-week commit heatmap." width="900" />
+  <img src="stats-light.svg" alt="Snapshot verified Apr 2026: languages by bytes across 19 public repos: Python 80%, TypeScript 9%, JavaScript 3%, Svelte 3%, Shell 3%, Other 2%. Synthetic 26-week contribution heatmap." width="900" />
 </picture>
 
 </div>
@@ -41,6 +43,8 @@ A 3-scalar tensor-logic recurrence vs. a 71M-parameter MLP, same task. `mean F1 
 ---
 
 ### Background
+
+Background metrics are role-history snapshots, last verified Apr 2026.
 
 | | | |
 |---|---|---|
