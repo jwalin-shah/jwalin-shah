@@ -55,3 +55,7 @@ A 3-scalar tensor-logic recurrence vs. a 71M-parameter MLP, same task. `mean F1 
 
 best for research collabs, eval & reliability work, on-device AI.
 ✉️ [jwalinshah13@gmail.com](mailto:jwalinshah13@gmail.com) · 💼 [linkedin](https://linkedin.com/in/jwalin-shah) · 🌐 [portfolio](https://jwalin-shah.github.io)
+
+### Publication check
+
+Run `python3 scripts/validate_publication.py` before publishing README or SVG changes.
