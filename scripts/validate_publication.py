@@ -65,6 +65,9 @@ def assert_local_file(errors: list[str], ref: str, owner: str) -> None:
 
 
 def svg_accessibility(path: Path, errors: list[str]) -> str:
+    if not path.exists():
+        fail(errors, f"{path.name}: missing SVG file")
+        return ""
     try:
         root = ET.parse(path).getroot()
     except ET.ParseError as exc:
