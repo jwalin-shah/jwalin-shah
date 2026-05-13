@@ -25,7 +25,7 @@ A 3-scalar tensor-logic recurrence vs. a 71M-parameter MLP, same task. `mean F1 
 `mean draft 0.42s · p95 1.15s · retrieval Hit@5 0.88 · hallucination gate 96.2% pass.` MLX-native, zero cloud dependencies. Evaluated 37 model configs.
 
 **[openhuman](https://github.com/tinyhumansai/openhuman)** — open-source agentic desktop assistant *(contributor)*.
-`GNU · macOS · Windows · Linux · 247★ · 36 forks.` Local-first KB (Neocortex), background self-learning loops (Subconscious), screen intelligence, inline autocomplete + voice, all on device.
+`GNU · macOS · Windows · Linux.` Local-first KB (Neocortex), background self-learning loops (Subconscious), screen intelligence, inline autocomplete + voice, all on device.
 
 ---
 
