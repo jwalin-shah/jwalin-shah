@@ -1,0 +1,14 @@
+{
+  "image_alt_text": {
+    "hero-light.svg": "Jwalin Shah — I measure what LLMs do. 3 scalars beat 71M parameters at 0.975 F1 vs 0.331 on transitive closure.",
+    "hero-dark.svg": "Jwalin Shah — I measure what LLMs do. 3 scalars beat 71M parameters at 0.975 F1 vs 0.331 on transitive closure.",
+    "stats-light.svg": "Languages by bytes across 19 public repos: Python 80%, TypeScript 9%, JavaScript 3%, Svelte 3%, Shell 3%, Other 2%. 26-week commit heatmap.",
+    "stats-dark.svg": "Languages by bytes across 19 public repos: Python 80%, TypeScript 9%, JavaScript 3%, Svelte 3%, Shell 3%, Other 2%. 26-week commit heatmap."
+  },
+  "required_links": [
+    "https://jwalin-shah.github.io",
+    "mailto:jwalinshah13@gmail.com",
+    "https://linkedin.com/in/jwalin-shah",
+    "https://github.com/jwalin-shah/tensor-logic"
+  ]
+}
