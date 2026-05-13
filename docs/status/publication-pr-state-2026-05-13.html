@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Publication PR State - 2026-05-13</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #171717;
+      --muted: #5f6368;
+      --line: #d7d7d7;
+      --bg: #fafafa;
+      --panel: #ffffff;
+      --ok: #116329;
+      --warn: #8a5300;
+      --code: #f4f4f4;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 40px 20px 56px;
+    }
+    header {
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 28px;
+      padding-bottom: 18px;
+    }
+    h1, h2 { line-height: 1.15; margin: 0; }
+    h1 { font-size: 32px; }
+    h2 { font-size: 20px; margin-top: 32px; }
+    p { margin: 10px 0; }
+    a { color: #0b57d0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      margin-top: 14px;
+    }
+    th, td {
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid var(--line);
+      padding: 10px 12px;
+    }
+    th {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: var(--muted);
+      background: #f2f2f2;
+    }
+    tr:last-child td { border-bottom: 0; }
+    code {
+      background: var(--code);
+      border-radius: 4px;
+      padding: 1px 4px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+    }
+    .meta { color: var(--muted); }
+    .status {
+      display: inline-block;
+      border: 1px solid currentColor;
+      border-radius: 999px;
+      padding: 1px 8px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .merged { color: var(--ok); }
+    .open { color: var(--warn); }
+    .note {
+      background: #fff8e1;
+      border: 1px solid #eed592;
+      padding: 12px 14px;
+      margin-top: 14px;
+    }
+    ul { padding-left: 20px; }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Publication PR State</h1>
+      <p class="meta">Captured 2026-05-13 13:15 PDT from the clean <code>origin/main</code> state of <code>jwalin-shah</code> and <code>jwalin-shah.github.io</code>.</p>
+    </header>
+
+    <section>
+      <h2>Current Conclusion</h2>
+      <p>The newer publication validation work has already landed on both main branches. The remaining open PRs are stale relative to those merged branches and should not be treated as the current source of truth.</p>
+      <p>No public claims were changed in this reconciliation artifact. Claims with counts or performance values still depend on the existing repo-local validation files and should only be edited after source verification.</p>
+    </section>
+
+    <section>
+      <h2>PR Ledger</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Repository</th>
+            <th>PR</th>
+            <th>Observed State</th>
+            <th>Disposition</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>jwalin-shah</code></td>
+            <td><a href="https://github.com/jwalin-shah/jwalin-shah/pull/3">#3 Add profile publication claims validation</a></td>
+            <td><span class="status merged">Merged</span><br>Merge commit <code>6fa4d0cae699d7e27ce403e7705c0f92b3cf5a76</code></td>
+            <td>Current profile README/SVG publication gate on <code>main</code>.</td>
+          </tr>
+          <tr>
+            <td><code>jwalin-shah</code></td>
+            <td><a href="https://github.com/jwalin-shah/jwalin-shah/pull/2">#2 MAX-274: Add profile publication validation</a></td>
+            <td><span class="status open">Open</span><br>Merge state reported dirty.</td>
+            <td>Superseded by PR #3 on <code>main</code>. Keep open only if a reviewer wants to salvage review discussion; otherwise close as stale.</td>
+          </tr>
+          <tr>
+            <td><code>jwalin-shah</code></td>
+            <td><a href="https://github.com/jwalin-shah/jwalin-shah/pull/1">#1 SYM-265: Label README metric snapshots</a></td>
+            <td><span class="status open">Open draft</span><br>Merge state reported dirty.</td>
+            <td>Superseded by the merged profile readiness and validation work. Close as stale unless it contains a still-needed review comment outside the diff.</td>
+          </tr>
+          <tr>
+            <td><code>jwalin-shah.github.io</code></td>
+            <td><a href="https://github.com/jwalin-shah/jwalin-shah.github.io/pull/2">#2 Add static build validation for Pages site</a></td>
+            <td><span class="status merged">Merged</span><br>Merge commit <code>63e3c7ecea6e0f3012d16fda3fb41037c5cac5ed</code></td>
+            <td>Current static build and publication validation gate on <code>main</code>.</td>
+          </tr>
+          <tr>
+            <td><code>jwalin-shah.github.io</code></td>
+            <td><a href="https://github.com/jwalin-shah/jwalin-shah.github.io/pull/1">#1 SYM-265: Label metrics and add static smoke build</a></td>
+            <td><span class="status open">Open draft</span><br>Merge state reported dirty.</td>
+            <td>Superseded by PR #2 on <code>main</code>. Close as stale unless review discussion needs to be preserved elsewhere first.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Validation Commands</h2>
+      <ul>
+        <li><code>jwalin-shah</code>: <code>python3 scripts/validate_publication.py</code></li>
+        <li><code>jwalin-shah.github.io</code>: <code>npm run validate</code></li>
+        <li>This docs-only artifact: <code>git diff --check</code></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Residual Blockers</h2>
+      <div class="note">
+        <p>The only remaining publication-profile housekeeping is external PR cleanup: close or comment on the superseded open PRs after confirming whether any review discussion should be retained. This artifact intentionally does not close PRs or change public claims.</p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
