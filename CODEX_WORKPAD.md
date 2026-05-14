@@ -96,3 +96,25 @@ git diff --check
 ```
 
 Result: passed.
+
+## Slice: CLI smoke contract - WP-135
+
+Branch: `codex/WP-135-cli-smoke-contract`
+
+Added a narrow argparse surface to `scripts/validate_publication.py`:
+
+- default validation still checks the current repo, stale-SVG failure reporting,
+  and now the no-secret CLI smoke contract
+- `--smoke --root <path>` runs a cheap entrypoint check against a supplied root
+- missing roots now fail clearly with `publication validation failed: missing README.md ...`
+
+Validation:
+
+```bash
+python3 scripts/validate_publication.py
+python3 scripts/validate_publication.py --smoke --root /tmp/does-not-exist-wp135
+git diff --check
+```
+
+Result: publication validation passed; bad-root smoke exited 1 with a clear
+failure message; diff check passed.

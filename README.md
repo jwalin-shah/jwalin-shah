@@ -22,6 +22,7 @@ python3 scripts/validate_publication.py
 ```
 
 This executable gate checks the canonical public claims file against README image references, SVG aria labels, and required public links.
+It also runs a no-secret CLI smoke contract; to smoke-check a different checkout directly, use `python3 scripts/validate_publication.py --smoke --root <path>`.
 
 ---
 
