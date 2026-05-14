@@ -77,3 +77,22 @@ git diff --check
 ```
 
 Result: passed.
+
+## Slice: shallow module deepening - WP-079
+
+Branch: `codex/WP-079-shallow-module-deepening`
+
+Deepened `scripts/validate_publication.py` by moving claim loading, README
+reference parsing, SVG aria checks, and required link checks behind
+`PublicationValidator`. The public caller surface remains `validate_publication(root)`,
+and the existing failure probe now exercises that module entry point rather than
+separate helper trivia.
+
+Validation:
+
+```bash
+python3 scripts/validate_publication.py
+git diff --check
+```
+
+Result: passed.

@@ -6,6 +6,7 @@ import re
 import sys
 import tempfile
 import xml.etree.ElementTree as ET
+from dataclasses import dataclass
 from pathlib import Path
 
 
@@ -20,73 +21,109 @@ def fail(message: str) -> None:
     raise ValidationError(message)
 
 
-def claims(root: Path) -> dict:
-    claims_path = root / "public_claims.json"
-    try:
-        return json.loads(claims_path.read_text())
-    except FileNotFoundError:
-        fail("missing public_claims.json")
-    except json.JSONDecodeError as exc:
-        fail(f"public_claims.json is invalid JSON: {exc}")
+@dataclass(frozen=True)
+class ImageRef:
+    path: str
+    alt_text: str = ""
 
 
-def readme_image_refs(root: Path) -> list[tuple[str, str]]:
-    text = (root / "README.md").read_text()
-    refs: list[tuple[str, str]] = []
-    for match in re.finditer(r'<source[^>]+srcset="([^"]+)"', text):
-        refs.append((match.group(1), ""))
-    for match in re.finditer(r'<img[^>]+src="([^"]+)"[^>]+alt="([^"]+)"', text):
-        refs.append((match.group(1), match.group(2)))
-    return refs
+@dataclass(frozen=True)
+class PublicClaims:
+    image_alt_text: dict[str, str]
+    required_links: set[str]
 
+    @classmethod
+    def load(cls, root: Path) -> "PublicClaims":
+        claims_path = root / "public_claims.json"
+        try:
+            data = json.loads(claims_path.read_text())
+        except FileNotFoundError:
+            fail("missing public_claims.json")
+        except json.JSONDecodeError as exc:
+            fail(f"public_claims.json is invalid JSON: {exc}")
 
-def svg_aria_label(path: Path) -> str:
-    try:
-        root = ET.parse(path).getroot()
-    except ET.ParseError as exc:
-        fail(f"{path.name} is not valid SVG XML: {exc}")
-    return root.attrib.get("aria-label", "").strip()
+        return cls(
+            image_alt_text=data.get("image_alt_text", {}),
+            required_links=set(data.get("required_links", [])),
+        )
 
-
-def validate_images(root: Path) -> None:
-    image_claims = claims(root).get("image_alt_text", {})
-    refs = readme_image_refs(root)
-    if not refs:
-        fail("README.md does not reference any publication images")
-
-    for ref, alt in refs:
-        expected = image_claims.get(ref)
+    def expected_image_text(self, image_ref: ImageRef) -> str:
+        expected = self.image_alt_text.get(image_ref.path)
         if not expected:
-            fail(f"public_claims.json is missing image_alt_text for {ref}")
-        path = root / ref
-        if not path.exists():
-            fail(f"README.md references missing image: {ref}")
-        if path.suffix == ".svg":
-            aria = svg_aria_label(path)
-            if not aria:
-                fail(f"{ref} is missing an aria-label")
-            if aria != expected:
-                fail(f"{ref} aria-label does not match public_claims.json")
-            if alt and alt != expected:
-                fail(f"README alt text for {ref} does not match public_claims.json")
+            fail(f"public_claims.json is missing image_alt_text for {image_ref.path}")
+        return expected
+
+    def require_links(self) -> set[str]:
+        if not self.required_links:
+            fail("public_claims.json must list required_links")
+        return self.required_links
 
 
-def validate_links(root: Path) -> None:
-    text = (root / "README.md").read_text()
-    links = re.findall(r'\]\((https?://[^)]+|mailto:[^)]+)\)', text)
-    if not links:
-        fail("README.md has no public links")
-    required = set(claims(root).get("required_links", []))
-    if not required:
-        fail("public_claims.json must list required_links")
-    missing = sorted(required - set(links))
-    if missing:
-        fail(f"README.md is missing required links: {', '.join(missing)}")
+class PublicationValidator:
+    def __init__(self, root: Path) -> None:
+        self.root = root
+        self.readme_text = (root / "README.md").read_text()
+        self.claims = PublicClaims.load(root)
+
+    def validate(self) -> None:
+        self._validate_images()
+        self._validate_links()
+
+    def _readme_image_refs(self) -> list[ImageRef]:
+        refs: list[ImageRef] = []
+        for match in re.finditer(r'<source[^>]+srcset="([^"]+)"', self.readme_text):
+            refs.append(ImageRef(match.group(1)))
+        for match in re.finditer(
+            r'<img[^>]+src="([^"]+)"[^>]+alt="([^"]+)"', self.readme_text
+        ):
+            refs.append(ImageRef(match.group(1), match.group(2)))
+        return refs
+
+    def _readme_links(self) -> set[str]:
+        return set(
+            re.findall(r'\]\((https?://[^)]+|mailto:[^)]+)\)', self.readme_text)
+        )
+
+    def _validate_images(self) -> None:
+        refs = self._readme_image_refs()
+        if not refs:
+            fail("README.md does not reference any publication images")
+
+        for image_ref in refs:
+            expected = self.claims.expected_image_text(image_ref)
+            image_path = self.root / image_ref.path
+            if not image_path.exists():
+                fail(f"README.md references missing image: {image_ref.path}")
+            if image_path.suffix == ".svg":
+                self._validate_svg_claim(image_ref, image_path, expected)
+
+    def _validate_svg_claim(
+        self, image_ref: ImageRef, image_path: Path, expected: str
+    ) -> None:
+        try:
+            svg_root = ET.parse(image_path).getroot()
+        except ET.ParseError as exc:
+            fail(f"{image_path.name} is not valid SVG XML: {exc}")
+
+        aria = svg_root.attrib.get("aria-label", "").strip()
+        if not aria:
+            fail(f"{image_ref.path} is missing an aria-label")
+        if aria != expected:
+            fail(f"{image_ref.path} aria-label does not match public_claims.json")
+        if image_ref.alt_text and image_ref.alt_text != expected:
+            fail(f"README alt text for {image_ref.path} does not match public_claims.json")
+
+    def _validate_links(self) -> None:
+        links = self._readme_links()
+        if not links:
+            fail("README.md has no public links")
+        missing = sorted(self.claims.require_links() - links)
+        if missing:
+            fail(f"README.md is missing required links: {', '.join(missing)}")
 
 
 def validate_publication(root: Path) -> None:
-    validate_images(root)
-    validate_links(root)
+    PublicationValidator(root).validate()
 
 
 def validate_failure_probe() -> None:
