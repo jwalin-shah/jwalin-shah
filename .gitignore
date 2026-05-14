@@ -1,2 +1,5 @@
 # CocoIndex Code (ccc)
 /.cocoindex_code/
+
+# Local validator/generated runtime output
+/.runtime/

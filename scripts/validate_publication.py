@@ -6,11 +6,13 @@ import re
 import sys
 import tempfile
 import xml.etree.ElementTree as ET
+from argparse import ArgumentParser, Namespace
 from dataclasses import dataclass
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_RUNTIME_DIR = ROOT / ".runtime" / "publication-validator"
 
 
 class ValidationError(Exception):
@@ -42,9 +44,28 @@ class PublicClaims:
         except json.JSONDecodeError as exc:
             fail(f"public_claims.json is invalid JSON: {exc}")
 
+        if not isinstance(data, dict):
+            fail("public_claims.json must be a JSON object")
+
+        image_alt_text = data.get("image_alt_text")
+        if not isinstance(image_alt_text, dict) or not image_alt_text:
+            fail("public_claims.json image_alt_text must be a non-empty object")
+        for image_path, expected_text in image_alt_text.items():
+            if not isinstance(image_path, str) or not image_path:
+                fail("public_claims.json image_alt_text keys must be non-empty strings")
+            if not isinstance(expected_text, str) or not expected_text.strip():
+                fail("public_claims.json image_alt_text values must be non-empty strings")
+
+        required_links = data.get("required_links")
+        if not isinstance(required_links, list) or not required_links:
+            fail("public_claims.json required_links must be a non-empty list")
+        for link in required_links:
+            if not isinstance(link, str) or not link:
+                fail("public_claims.json required_links must contain only non-empty strings")
+
         return cls(
-            image_alt_text=data.get("image_alt_text", {}),
-            required_links=set(data.get("required_links", [])),
+            image_alt_text=image_alt_text,
+            required_links=set(required_links),
         )
 
     def expected_image_text(self, image_ref: ImageRef) -> str:
@@ -62,7 +83,10 @@ class PublicClaims:
 class PublicationValidator:
     def __init__(self, root: Path) -> None:
         self.root = root
-        self.readme_text = (root / "README.md").read_text()
+        try:
+            self.readme_text = (root / "README.md").read_text()
+        except FileNotFoundError:
+            fail(f"missing README.md in {root}")
         self.claims = PublicClaims.load(root)
 
     def validate(self) -> None:
@@ -178,10 +202,28 @@ def write_publication_probe_fixture(
     )
 
 
+def write_valid_fixture(root: Path) -> None:
+    expected = "Expected publication claim."
+    write_publication_probe_fixture(
+        root,
+        svg_aria=expected,
+        readme_alt=expected,
+        expected=expected,
+    )
+
+
 def assert_publication_probe_fails(
-    *, svg_aria: str, readme_alt: str, expected: str, expected_error: str
+    *,
+    runtime_dir: Path,
+    svg_aria: str,
+    readme_alt: str,
+    expected: str,
+    expected_error: str,
 ) -> None:
-    with tempfile.TemporaryDirectory(prefix="publication-validator-") as tmp:
+    runtime_dir.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(
+        prefix="fixture-failure-", dir=runtime_dir
+    ) as tmp:
         root = Path(tmp)
         write_publication_probe_fixture(
             root,
@@ -201,7 +243,7 @@ def assert_publication_probe_fails(
 
 
 def assert_non_svg_source_claim_is_required() -> None:
-    with tempfile.TemporaryDirectory(prefix="publication-validator-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="fixture-source-") as tmp:
         root = Path(tmp)
         expected = "Expected publication claim."
         write_publication_probe_fixture(
@@ -223,16 +265,18 @@ def assert_non_svg_source_claim_is_required() -> None:
     fail("non-SVG source probe did not require a public_claims.json entry")
 
 
-def validate_failure_probe() -> None:
+def validate_failure_probe(runtime_dir: Path) -> None:
     """Prove both public image claim text call paths reject stale claims."""
     expected = "Expected publication claim."
     assert_publication_probe_fails(
+        runtime_dir=runtime_dir,
         svg_aria="Stale publication claim.",
         readme_alt=expected,
         expected=expected,
         expected_error="aria-label for claim.svg does not match public_claims.json",
     )
     assert_publication_probe_fails(
+        runtime_dir=runtime_dir,
         svg_aria=expected,
         readme_alt="Stale publication claim.",
         expected=expected,
@@ -241,14 +285,115 @@ def validate_failure_probe() -> None:
     assert_non_svg_source_claim_is_required()
 
 
-def main() -> None:
+def validate_malformed_claims_probe(runtime_dir: Path) -> None:
+    """Prove malformed public_claims.json fails before producing bad comparisons."""
+    runtime_dir.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(
+        prefix="fixture-malformed-claims-", dir=runtime_dir
+    ) as tmp:
+        root = Path(tmp)
+        write_valid_fixture(root)
+        (root / "public_claims.json").write_text(
+            json.dumps(
+                {
+                    "image_alt_text": {"claim.svg": "Expected publication claim."},
+                    "required_links": "https://example.com",
+                }
+            )
+        )
+
+        try:
+            validate_publication(root)
+        except ValidationError as exc:
+            if "public_claims.json required_links must be a non-empty list" in str(exc):
+                return
+            fail(f"malformed claims probe raised the wrong validation error: {exc}")
+
+    fail("malformed claims probe did not reject invalid required_links")
+
+
+def validate_cli_smoke_contract(runtime_dir: Path) -> None:
+    """Exercise imports, argument parsing, success, and bad-input reporting."""
+    args = parse_args(["--root", ".", "--smoke"])
+    if args.root != Path(".") or not args.smoke:
+        fail("CLI smoke contract did not parse expected arguments")
+    if args.runtime_dir != DEFAULT_RUNTIME_DIR:
+        fail("CLI smoke contract defaulted runtime output outside the ignored path")
+
+    runtime_dir.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="fixture-smoke-", dir=runtime_dir) as tmp:
+        root = Path(tmp)
+        write_valid_fixture(root)
+        if (
+            run(
+                Namespace(root=root, smoke=True, runtime_dir=runtime_dir),
+                include_cli_smoke=False,
+                emit=False,
+            )
+            != 0
+        ):
+            fail("CLI smoke contract rejected a valid fixture")
+
+        missing_root = root / "missing"
+        if (
+            run(
+                Namespace(root=missing_root, smoke=True, runtime_dir=runtime_dir),
+                include_cli_smoke=False,
+                emit=False,
+            )
+            == 0
+        ):
+            fail("CLI smoke contract accepted missing input")
+
+
+def parse_args(argv: list[str] | None = None) -> Namespace:
+    parser = ArgumentParser(
+        description="Validate public profile publication claims and links."
+    )
+    parser.add_argument(
+        "--root",
+        type=Path,
+        default=ROOT,
+        help="repository root to validate; defaults to this script's parent repo",
+    )
+    parser.add_argument(
+        "--smoke",
+        action="store_true",
+        help="run only the no-secret CLI smoke contract",
+    )
+    parser.add_argument(
+        "--runtime-dir",
+        type=Path,
+        default=DEFAULT_RUNTIME_DIR,
+        help="local directory for generated self-test fixtures; defaults under .runtime/",
+    )
+    return parser.parse_args(argv)
+
+
+def run(
+    args: Namespace, *, include_cli_smoke: bool = True, emit: bool = True
+) -> int:
     try:
-        validate_publication(ROOT)
-        validate_failure_probe()
+        runtime_dir = args.runtime_dir
+        if args.smoke:
+            validate_publication(args.root)
+        else:
+            validate_publication(args.root)
+            validate_failure_probe(runtime_dir)
+            validate_malformed_claims_probe(runtime_dir)
+            if include_cli_smoke:
+                validate_cli_smoke_contract(runtime_dir)
     except ValidationError as exc:
-        print(f"publication validation failed: {exc}", file=sys.stderr)
-        raise SystemExit(1)
-    print("publication validation passed")
+        if emit:
+            print(f"publication validation failed: {exc}", file=sys.stderr)
+        return 1
+    if emit:
+        print("publication validation passed")
+    return 0
+
+
+def main(argv: list[str] | None = None) -> None:
+    raise SystemExit(run(parse_args(argv)))
 
 
 if __name__ == "__main__":

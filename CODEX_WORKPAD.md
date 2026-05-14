@@ -107,6 +107,73 @@ Consolidated public image claim text comparison in
 now route through that shared rule, and the failure probe covers both stale
 claim paths.
 
+Merge resolution note: this slice was replayed on top of the later validation
+gate work below by keeping the shared claim-text helper and adapting the
+expanded failure probes to the runtime fixture directory added on `main`.
+
+Validation:
+
+```bash
+python3 scripts/validate_publication.py
+git diff --check
+```
+
+Result: passed.
+
+## Slice: CLI smoke contract - WP-135
+
+Branch: `codex/WP-135-cli-smoke-contract`
+
+Added a narrow argparse surface to `scripts/validate_publication.py`:
+
+- default validation still checks the current repo, stale-SVG failure reporting,
+  and now the no-secret CLI smoke contract
+- `--smoke --root <path>` runs a cheap entrypoint check against a supplied root
+- missing roots now fail clearly with `publication validation failed: missing README.md ...`
+
+Validation:
+
+```bash
+python3 scripts/validate_publication.py
+python3 scripts/validate_publication.py --smoke --root /tmp/does-not-exist-wp135
+git diff --check
+```
+
+Result: publication validation passed; bad-root smoke exited 1 with a clear
+failure message; diff check passed.
+
+## Slice: fixture/runtime separation - WP-163
+
+Branch: `codex/WP-163-fixture-runtime-separation`
+
+Separated generated validator self-test fixtures from tracked evidence:
+
+- `.runtime/` is ignored for local generated output.
+- `scripts/validate_publication.py` defaults generated self-test fixture roots to
+  `.runtime/publication-validator/` and asserts that default in the CLI smoke
+  contract.
+- `docs/status/README.md` documents `docs/status/` as curated tracked evidence,
+  not a default runtime-output target.
+
+Validation:
+
+```bash
+python3 scripts/validate_publication.py
+git diff --check
+```
+
+Result: passed.
+
+## Slice: error boundary hardening - WP-191
+
+Branch: `codex/WP-191-error-boundary-hardening`
+
+Hardened the `public_claims.json` parser boundary in
+`scripts/validate_publication.py` so malformed claims schema fails closed with
+deterministic validation errors before downstream comparison logic can produce
+misleading output. Added a negative self-test fixture for `required_links`
+provided as a string instead of a list.
+
 Validation:
 
 ```bash
