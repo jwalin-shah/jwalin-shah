@@ -12,6 +12,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_RUNTIME_DIR = ROOT / ".runtime" / "publication-validator"
 
 
 class ValidationError(Exception):
@@ -154,9 +155,12 @@ def write_valid_fixture(root: Path) -> None:
     )
 
 
-def validate_failure_probe() -> None:
+def validate_failure_probe(runtime_dir: Path) -> None:
     """Prove the gate fails on stale SVG aria text."""
-    with tempfile.TemporaryDirectory(prefix="publication-validator-") as tmp:
+    runtime_dir.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(
+        prefix="fixture-failure-", dir=runtime_dir
+    ) as tmp:
         root = Path(tmp)
         write_valid_fixture(root)
         (root / "claim.svg").write_text(
@@ -174,17 +178,24 @@ def validate_failure_probe() -> None:
     fail("failure probe did not reject stale SVG aria text")
 
 
-def validate_cli_smoke_contract() -> None:
+def validate_cli_smoke_contract(runtime_dir: Path) -> None:
     """Exercise imports, argument parsing, success, and bad-input reporting."""
     args = parse_args(["--root", ".", "--smoke"])
     if args.root != Path(".") or not args.smoke:
         fail("CLI smoke contract did not parse expected arguments")
+    if args.runtime_dir != DEFAULT_RUNTIME_DIR:
+        fail("CLI smoke contract defaulted runtime output outside the ignored path")
 
-    with tempfile.TemporaryDirectory(prefix="publication-validator-smoke-") as tmp:
+    runtime_dir.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="fixture-smoke-", dir=runtime_dir) as tmp:
         root = Path(tmp)
         write_valid_fixture(root)
         if (
-            run(Namespace(root=root, smoke=True), include_cli_smoke=False, emit=False)
+            run(
+                Namespace(root=root, smoke=True, runtime_dir=runtime_dir),
+                include_cli_smoke=False,
+                emit=False,
+            )
             != 0
         ):
             fail("CLI smoke contract rejected a valid fixture")
@@ -192,7 +203,7 @@ def validate_cli_smoke_contract() -> None:
         missing_root = root / "missing"
         if (
             run(
-                Namespace(root=missing_root, smoke=True),
+                Namespace(root=missing_root, smoke=True, runtime_dir=runtime_dir),
                 include_cli_smoke=False,
                 emit=False,
             )
@@ -216,6 +227,12 @@ def parse_args(argv: list[str] | None = None) -> Namespace:
         action="store_true",
         help="run only the no-secret CLI smoke contract",
     )
+    parser.add_argument(
+        "--runtime-dir",
+        type=Path,
+        default=DEFAULT_RUNTIME_DIR,
+        help="local directory for generated self-test fixtures; defaults under .runtime/",
+    )
     return parser.parse_args(argv)
 
 
@@ -223,13 +240,14 @@ def run(
     args: Namespace, *, include_cli_smoke: bool = True, emit: bool = True
 ) -> int:
     try:
+        runtime_dir = args.runtime_dir
         if args.smoke:
             validate_publication(args.root)
         else:
             validate_publication(args.root)
-            validate_failure_probe()
+            validate_failure_probe(runtime_dir)
             if include_cli_smoke:
-                validate_cli_smoke_contract()
+                validate_cli_smoke_contract(runtime_dir)
     except ValidationError as exc:
         if emit:
             print(f"publication validation failed: {exc}", file=sys.stderr)

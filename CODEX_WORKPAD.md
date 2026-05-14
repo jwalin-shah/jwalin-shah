@@ -118,3 +118,25 @@ git diff --check
 
 Result: publication validation passed; bad-root smoke exited 1 with a clear
 failure message; diff check passed.
+
+## Slice: fixture/runtime separation - WP-163
+
+Branch: `codex/WP-163-fixture-runtime-separation`
+
+Separated generated validator self-test fixtures from tracked evidence:
+
+- `.runtime/` is ignored for local generated output.
+- `scripts/validate_publication.py` defaults generated self-test fixture roots to
+  `.runtime/publication-validator/` and asserts that default in the CLI smoke
+  contract.
+- `docs/status/README.md` documents `docs/status/` as curated tracked evidence,
+  not a default runtime-output target.
+
+Validation:
+
+```bash
+python3 scripts/validate_publication.py
+git diff --check
+```
+
+Result: passed.
