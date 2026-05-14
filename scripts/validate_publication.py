@@ -6,6 +6,7 @@ import re
 import sys
 import tempfile
 import xml.etree.ElementTree as ET
+from argparse import ArgumentParser, Namespace
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -62,7 +63,10 @@ class PublicClaims:
 class PublicationValidator:
     def __init__(self, root: Path) -> None:
         self.root = root
-        self.readme_text = (root / "README.md").read_text()
+        try:
+            self.readme_text = (root / "README.md").read_text()
+        except FileNotFoundError:
+            fail(f"missing README.md in {root}")
         self.claims = PublicClaims.load(root)
 
     def validate(self) -> None:
@@ -126,30 +130,38 @@ def validate_publication(root: Path) -> None:
     PublicationValidator(root).validate()
 
 
+def write_valid_fixture(root: Path) -> None:
+    expected = "Expected publication claim."
+    (root / "README.md").write_text(
+        "\n".join(
+            [
+                '<picture><img src="claim.svg" alt="Expected publication claim." /></picture>',
+                "[portfolio](https://example.com)",
+            ]
+        )
+    )
+    (root / "claim.svg").write_text(
+        '<svg xmlns="http://www.w3.org/2000/svg" role="img" '
+        'aria-label="Expected publication claim."></svg>'
+    )
+    (root / "public_claims.json").write_text(
+        json.dumps(
+            {
+                "image_alt_text": {"claim.svg": expected},
+                "required_links": ["https://example.com"],
+            }
+        )
+    )
+
+
 def validate_failure_probe() -> None:
     """Prove the gate fails on stale SVG aria text."""
-    expected = "Expected publication claim."
     with tempfile.TemporaryDirectory(prefix="publication-validator-") as tmp:
         root = Path(tmp)
-        (root / "README.md").write_text(
-            "\n".join(
-                [
-                    '<picture><img src="claim.svg" alt="Expected publication claim." /></picture>',
-                    "[portfolio](https://example.com)",
-                ]
-            )
-        )
+        write_valid_fixture(root)
         (root / "claim.svg").write_text(
             '<svg xmlns="http://www.w3.org/2000/svg" role="img" '
             'aria-label="Stale publication claim."></svg>'
-        )
-        (root / "public_claims.json").write_text(
-            json.dumps(
-                {
-                    "image_alt_text": {"claim.svg": expected},
-                    "required_links": ["https://example.com"],
-                }
-            )
         )
 
         try:
@@ -162,14 +174,73 @@ def validate_failure_probe() -> None:
     fail("failure probe did not reject stale SVG aria text")
 
 
-def main() -> None:
+def validate_cli_smoke_contract() -> None:
+    """Exercise imports, argument parsing, success, and bad-input reporting."""
+    args = parse_args(["--root", ".", "--smoke"])
+    if args.root != Path(".") or not args.smoke:
+        fail("CLI smoke contract did not parse expected arguments")
+
+    with tempfile.TemporaryDirectory(prefix="publication-validator-smoke-") as tmp:
+        root = Path(tmp)
+        write_valid_fixture(root)
+        if (
+            run(Namespace(root=root, smoke=True), include_cli_smoke=False, emit=False)
+            != 0
+        ):
+            fail("CLI smoke contract rejected a valid fixture")
+
+        missing_root = root / "missing"
+        if (
+            run(
+                Namespace(root=missing_root, smoke=True),
+                include_cli_smoke=False,
+                emit=False,
+            )
+            == 0
+        ):
+            fail("CLI smoke contract accepted missing input")
+
+
+def parse_args(argv: list[str] | None = None) -> Namespace:
+    parser = ArgumentParser(
+        description="Validate public profile publication claims and links."
+    )
+    parser.add_argument(
+        "--root",
+        type=Path,
+        default=ROOT,
+        help="repository root to validate; defaults to this script's parent repo",
+    )
+    parser.add_argument(
+        "--smoke",
+        action="store_true",
+        help="run only the no-secret CLI smoke contract",
+    )
+    return parser.parse_args(argv)
+
+
+def run(
+    args: Namespace, *, include_cli_smoke: bool = True, emit: bool = True
+) -> int:
     try:
-        validate_publication(ROOT)
-        validate_failure_probe()
+        if args.smoke:
+            validate_publication(args.root)
+        else:
+            validate_publication(args.root)
+            validate_failure_probe()
+            if include_cli_smoke:
+                validate_cli_smoke_contract()
     except ValidationError as exc:
-        print(f"publication validation failed: {exc}", file=sys.stderr)
-        raise SystemExit(1)
-    print("publication validation passed")
+        if emit:
+            print(f"publication validation failed: {exc}", file=sys.stderr)
+        return 1
+    if emit:
+        print("publication validation passed")
+    return 0
+
+
+def main(argv: list[str] | None = None) -> None:
+    raise SystemExit(run(parse_args(argv)))
 
 
 if __name__ == "__main__":
