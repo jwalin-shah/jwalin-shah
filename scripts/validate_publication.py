@@ -8,6 +8,7 @@ import tempfile
 import xml.etree.ElementTree as ET
 from argparse import ArgumentParser, Namespace
 from dataclasses import dataclass
+from html.parser import HTMLParser
 from pathlib import Path
 
 
@@ -26,7 +27,23 @@ def fail(message: str) -> None:
 @dataclass(frozen=True)
 class ImageRef:
     path: str
-    alt_text: str = ""
+    alt_text: str | None = None
+    requires_alt: bool = False
+
+
+class ReadmeImageParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__()
+        self.refs: list[ImageRef] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        attr_map = {name: value or "" for name, value in attrs}
+        if tag == "source" and "srcset" in attr_map:
+            self.refs.append(ImageRef(attr_map["srcset"]))
+        if tag == "img" and "src" in attr_map:
+            self.refs.append(
+                ImageRef(attr_map["src"], attr_map.get("alt"), requires_alt=True)
+            )
 
 
 @dataclass(frozen=True)
@@ -94,14 +111,9 @@ class PublicationValidator:
         self._validate_links()
 
     def _readme_image_refs(self) -> list[ImageRef]:
-        refs: list[ImageRef] = []
-        for match in re.finditer(r'<source[^>]+srcset="([^"]+)"', self.readme_text):
-            refs.append(ImageRef(match.group(1)))
-        for match in re.finditer(
-            r'<img[^>]+src="([^"]+)"[^>]+alt="([^"]+)"', self.readme_text
-        ):
-            refs.append(ImageRef(match.group(1), match.group(2)))
-        return refs
+        parser = ReadmeImageParser()
+        parser.feed(self.readme_text)
+        return parser.refs
 
     def _readme_links(self) -> set[str]:
         return set(
@@ -118,6 +130,8 @@ class PublicationValidator:
             if not image_path.exists():
                 fail(f"README.md references missing image: {image_ref.path}")
             self.claims.expected_image_text(image_ref)
+            if image_ref.requires_alt and not image_ref.alt_text:
+                fail(f"README img tag for {image_ref.path} is missing alt text")
             if image_ref.alt_text:
                 self._validate_public_image_claim_text(
                     image_ref,
@@ -285,6 +299,87 @@ def validate_failure_probe(runtime_dir: Path) -> None:
     assert_non_svg_source_claim_is_required()
 
 
+def validate_alt_attribute_order_probe(runtime_dir: Path) -> None:
+    """Prove README image alt text is checked regardless of attribute order."""
+    expected = "Expected publication claim."
+    runtime_dir.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(
+        prefix="fixture-alt-order-", dir=runtime_dir
+    ) as tmp:
+        root = Path(tmp)
+        (root / "README.md").write_text(
+            "\n".join(
+                [
+                    '<picture><source srcset="claim.svg">'
+                    '<img alt="Stale README claim." src="claim.svg" /></picture>',
+                    "[portfolio](https://example.com)",
+                ]
+            )
+        )
+        (root / "claim.svg").write_text(
+            '<svg xmlns="http://www.w3.org/2000/svg" role="img" '
+            'aria-label="Expected publication claim."></svg>'
+        )
+        (root / "public_claims.json").write_text(
+            json.dumps(
+                {
+                    "image_alt_text": {"claim.svg": expected},
+                    "required_links": ["https://example.com"],
+                }
+            )
+        )
+
+        try:
+            validate_publication(root)
+        except ValidationError as exc:
+            if "README alt text for claim.svg does not match public_claims.json" in str(
+                exc
+            ):
+                return
+            fail(f"alt attribute order probe raised the wrong validation error: {exc}")
+
+    fail("alt attribute order probe did not reject stale README alt text")
+
+
+def validate_missing_alt_probe(runtime_dir: Path) -> None:
+    """Prove README img tags must include alt text."""
+    expected = "Expected publication claim."
+    runtime_dir.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(
+        prefix="fixture-missing-alt-", dir=runtime_dir
+    ) as tmp:
+        root = Path(tmp)
+        (root / "README.md").write_text(
+            "\n".join(
+                [
+                    '<picture><img src="claim.svg" /></picture>',
+                    "[portfolio](https://example.com)",
+                ]
+            )
+        )
+        (root / "claim.svg").write_text(
+            '<svg xmlns="http://www.w3.org/2000/svg" role="img" '
+            'aria-label="Expected publication claim."></svg>'
+        )
+        (root / "public_claims.json").write_text(
+            json.dumps(
+                {
+                    "image_alt_text": {"claim.svg": expected},
+                    "required_links": ["https://example.com"],
+                }
+            )
+        )
+
+        try:
+            validate_publication(root)
+        except ValidationError as exc:
+            if "README img tag for claim.svg is missing alt text" in str(exc):
+                return
+            fail(f"missing alt probe raised the wrong validation error: {exc}")
+
+    fail("missing alt probe did not reject a README img tag without alt text")
+
+
 def validate_malformed_claims_probe(runtime_dir: Path) -> None:
     """Prove malformed public_claims.json fails before producing bad comparisons."""
     runtime_dir.mkdir(parents=True, exist_ok=True)
@@ -380,6 +475,8 @@ def run(
         else:
             validate_publication(args.root)
             validate_failure_probe(runtime_dir)
+            validate_alt_attribute_order_probe(runtime_dir)
+            validate_missing_alt_probe(runtime_dir)
             validate_malformed_claims_probe(runtime_dir)
             if include_cli_smoke:
                 validate_cli_smoke_contract(runtime_dir)
