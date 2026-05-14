@@ -6,6 +6,7 @@ import re
 import sys
 import tempfile
 import xml.etree.ElementTree as ET
+from html.parser import HTMLParser
 from pathlib import Path
 
 
@@ -30,14 +31,24 @@ def claims(root: Path) -> dict:
         fail(f"public_claims.json is invalid JSON: {exc}")
 
 
+class ReadmeImageParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__()
+        self.refs: list[tuple[str, str]] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        attr_map = {name: value or "" for name, value in attrs}
+        if tag == "source" and "srcset" in attr_map:
+            self.refs.append((attr_map["srcset"], ""))
+        if tag == "img" and "src" in attr_map:
+            self.refs.append((attr_map["src"], attr_map.get("alt", "")))
+
+
 def readme_image_refs(root: Path) -> list[tuple[str, str]]:
     text = (root / "README.md").read_text()
-    refs: list[tuple[str, str]] = []
-    for match in re.finditer(r'<source[^>]+srcset="([^"]+)"', text):
-        refs.append((match.group(1), ""))
-    for match in re.finditer(r'<img[^>]+src="([^"]+)"[^>]+alt="([^"]+)"', text):
-        refs.append((match.group(1), match.group(2)))
-    return refs
+    parser = ReadmeImageParser()
+    parser.feed(text)
+    return parser.refs
 
 
 def svg_aria_label(path: Path) -> str:
@@ -125,10 +136,50 @@ def validate_failure_probe() -> None:
     fail("failure probe did not reject stale SVG aria text")
 
 
+def validate_alt_attribute_order_probe() -> None:
+    """Prove README image alt text is checked regardless of attribute order."""
+    expected = "Expected publication claim."
+    with tempfile.TemporaryDirectory(prefix="publication-validator-") as tmp:
+        root = Path(tmp)
+        (root / "README.md").write_text(
+            "\n".join(
+                [
+                    '<picture><source srcset="claim.svg">'
+                    '<img alt="Stale README claim." src="claim.svg" /></picture>',
+                    "[portfolio](https://example.com)",
+                ]
+            )
+        )
+        (root / "claim.svg").write_text(
+            '<svg xmlns="http://www.w3.org/2000/svg" role="img" '
+            'aria-label="Expected publication claim."></svg>'
+        )
+        (root / "public_claims.json").write_text(
+            json.dumps(
+                {
+                    "image_alt_text": {"claim.svg": expected},
+                    "required_links": ["https://example.com"],
+                }
+            )
+        )
+
+        try:
+            validate_publication(root)
+        except ValidationError as exc:
+            if "README alt text for claim.svg does not match public_claims.json" in str(
+                exc
+            ):
+                return
+            fail(f"alt attribute order probe raised the wrong validation error: {exc}")
+
+    fail("alt attribute order probe did not reject stale README alt text")
+
+
 def main() -> None:
     try:
         validate_publication(ROOT)
         validate_failure_probe()
+        validate_alt_attribute_order_probe()
     except ValidationError as exc:
         print(f"publication validation failed: {exc}", file=sys.stderr)
         raise SystemExit(1)

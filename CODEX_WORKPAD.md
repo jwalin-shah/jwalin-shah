@@ -77,3 +77,22 @@ git diff --check
 ```
 
 Result: passed.
+
+## WP-051: README image parser regression - 2026-05-14
+
+Added a focused regression probe for README image alt text where the `alt`
+attribute appears before `src`. The old regex parser missed that `<img>` shape
+when a matching `<source>` kept the image set otherwise valid, allowing stale
+README alt text to pass.
+
+Updated `scripts/validate_publication.py` to parse README image tags with
+`html.parser.HTMLParser` so `<source srcset>` and `<img src alt>` references are
+checked independent of attribute order.
+
+Validation:
+
+```bash
+python3 scripts/validate_publication.py
+```
+
+Result: passed.
