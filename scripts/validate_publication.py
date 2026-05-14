@@ -6,11 +6,14 @@ import re
 import sys
 import tempfile
 import xml.etree.ElementTree as ET
+from argparse import ArgumentParser, Namespace
+from dataclasses import dataclass
 from html.parser import HTMLParser
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_RUNTIME_DIR = ROOT / ".runtime" / "publication-validator"
 
 
 class ValidationError(Exception):
@@ -21,111 +24,181 @@ def fail(message: str) -> None:
     raise ValidationError(message)
 
 
-def claims(root: Path) -> dict:
-    claims_path = root / "public_claims.json"
-    try:
-        return json.loads(claims_path.read_text())
-    except FileNotFoundError:
-        fail("missing public_claims.json")
-    except json.JSONDecodeError as exc:
-        fail(f"public_claims.json is invalid JSON: {exc}")
+@dataclass(frozen=True)
+class ImageRef:
+    path: str
+    alt_text: str | None = None
+    requires_alt: bool = False
 
 
 class ReadmeImageParser(HTMLParser):
     def __init__(self) -> None:
         super().__init__()
-        self.refs: list[tuple[str, str | None, bool]] = []
+        self.refs: list[ImageRef] = []
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         attr_map = {name: value or "" for name, value in attrs}
         if tag == "source" and "srcset" in attr_map:
-            self.refs.append((attr_map["srcset"], None, False))
+            self.refs.append(ImageRef(attr_map["srcset"]))
         if tag == "img" and "src" in attr_map:
-            self.refs.append((attr_map["src"], attr_map.get("alt"), True))
+            self.refs.append(
+                ImageRef(attr_map["src"], attr_map.get("alt"), requires_alt=True)
+            )
 
 
-def readme_image_refs(root: Path) -> list[tuple[str, str | None, bool]]:
-    text = (root / "README.md").read_text()
-    parser = ReadmeImageParser()
-    parser.feed(text)
-    return parser.refs
+@dataclass(frozen=True)
+class PublicClaims:
+    image_alt_text: dict[str, str]
+    required_links: set[str]
 
+    @classmethod
+    def load(cls, root: Path) -> "PublicClaims":
+        claims_path = root / "public_claims.json"
+        try:
+            data = json.loads(claims_path.read_text())
+        except FileNotFoundError:
+            fail("missing public_claims.json")
+        except json.JSONDecodeError as exc:
+            fail(f"public_claims.json is invalid JSON: {exc}")
 
-def svg_aria_label(path: Path) -> str:
-    try:
-        root = ET.parse(path).getroot()
-    except ET.ParseError as exc:
-        fail(f"{path.name} is not valid SVG XML: {exc}")
-    return root.attrib.get("aria-label", "").strip()
+        if not isinstance(data, dict):
+            fail("public_claims.json must be a JSON object")
 
+        image_alt_text = data.get("image_alt_text")
+        if not isinstance(image_alt_text, dict) or not image_alt_text:
+            fail("public_claims.json image_alt_text must be a non-empty object")
+        for image_path, expected_text in image_alt_text.items():
+            if not isinstance(image_path, str) or not image_path:
+                fail("public_claims.json image_alt_text keys must be non-empty strings")
+            if not isinstance(expected_text, str) or not expected_text.strip():
+                fail("public_claims.json image_alt_text values must be non-empty strings")
 
-def validate_images(root: Path) -> None:
-    image_claims = claims(root).get("image_alt_text", {})
-    refs = readme_image_refs(root)
-    if not refs:
-        fail("README.md does not reference any publication images")
+        required_links = data.get("required_links")
+        if not isinstance(required_links, list) or not required_links:
+            fail("public_claims.json required_links must be a non-empty list")
+        for link in required_links:
+            if not isinstance(link, str) or not link:
+                fail("public_claims.json required_links must contain only non-empty strings")
 
-    for ref, alt, requires_alt in refs:
-        expected = image_claims.get(ref)
+        return cls(
+            image_alt_text=image_alt_text,
+            required_links=set(required_links),
+        )
+
+    def expected_image_text(self, image_ref: ImageRef) -> str:
+        expected = self.image_alt_text.get(image_ref.path)
         if not expected:
-            fail(f"public_claims.json is missing image_alt_text for {ref}")
-        path = root / ref
-        if not path.exists():
-            fail(f"README.md references missing image: {ref}")
-        if path.suffix == ".svg":
-            aria = svg_aria_label(path)
-            if not aria:
-                fail(f"{ref} is missing an aria-label")
-            if aria != expected:
-                fail(f"{ref} aria-label does not match public_claims.json")
-            if requires_alt and not alt:
-                fail(f"README img tag for {ref} is missing alt text")
-            if alt is not None and alt != expected:
-                fail(f"README alt text for {ref} does not match public_claims.json")
+            fail(f"public_claims.json is missing image_alt_text for {image_ref.path}")
+        return expected
+
+    def require_links(self) -> set[str]:
+        if not self.required_links:
+            fail("public_claims.json must list required_links")
+        return self.required_links
 
 
-def validate_links(root: Path) -> None:
-    text = (root / "README.md").read_text()
-    links = re.findall(r'\]\((https?://[^)]+|mailto:[^)]+)\)', text)
-    if not links:
-        fail("README.md has no public links")
-    required = set(claims(root).get("required_links", []))
-    if not required:
-        fail("public_claims.json must list required_links")
-    missing = sorted(required - set(links))
-    if missing:
-        fail(f"README.md is missing required links: {', '.join(missing)}")
+class PublicationValidator:
+    def __init__(self, root: Path) -> None:
+        self.root = root
+        try:
+            self.readme_text = (root / "README.md").read_text()
+        except FileNotFoundError:
+            fail(f"missing README.md in {root}")
+        self.claims = PublicClaims.load(root)
+
+    def validate(self) -> None:
+        self._validate_images()
+        self._validate_links()
+
+    def _readme_image_refs(self) -> list[ImageRef]:
+        parser = ReadmeImageParser()
+        parser.feed(self.readme_text)
+        return parser.refs
+
+    def _readme_links(self) -> set[str]:
+        return set(
+            re.findall(r'\]\((https?://[^)]+|mailto:[^)]+)\)', self.readme_text)
+        )
+
+    def _validate_images(self) -> None:
+        refs = self._readme_image_refs()
+        if not refs:
+            fail("README.md does not reference any publication images")
+
+        for image_ref in refs:
+            expected = self.claims.expected_image_text(image_ref)
+            image_path = self.root / image_ref.path
+            if not image_path.exists():
+                fail(f"README.md references missing image: {image_ref.path}")
+            if image_path.suffix == ".svg":
+                self._validate_svg_claim(image_ref, image_path, expected)
+
+    def _validate_svg_claim(
+        self, image_ref: ImageRef, image_path: Path, expected: str
+    ) -> None:
+        try:
+            svg_root = ET.parse(image_path).getroot()
+        except ET.ParseError as exc:
+            fail(f"{image_path.name} is not valid SVG XML: {exc}")
+
+        aria = svg_root.attrib.get("aria-label", "").strip()
+        if not aria:
+            fail(f"{image_ref.path} is missing an aria-label")
+        if aria != expected:
+            fail(f"{image_ref.path} aria-label does not match public_claims.json")
+        if image_ref.requires_alt and not image_ref.alt_text:
+            fail(f"README img tag for {image_ref.path} is missing alt text")
+        if image_ref.alt_text is not None and image_ref.alt_text != expected:
+            fail(f"README alt text for {image_ref.path} does not match public_claims.json")
+
+    def _validate_links(self) -> None:
+        links = self._readme_links()
+        if not links:
+            fail("README.md has no public links")
+        missing = sorted(self.claims.require_links() - links)
+        if missing:
+            fail(f"README.md is missing required links: {', '.join(missing)}")
 
 
 def validate_publication(root: Path) -> None:
-    validate_images(root)
-    validate_links(root)
+    PublicationValidator(root).validate()
 
 
-def validate_failure_probe() -> None:
-    """Prove the gate fails on stale SVG aria text."""
+def write_valid_fixture(root: Path) -> None:
     expected = "Expected publication claim."
-    with tempfile.TemporaryDirectory(prefix="publication-validator-") as tmp:
-        root = Path(tmp)
-        (root / "README.md").write_text(
-            "\n".join(
-                [
-                    '<picture><img src="claim.svg" alt="Expected publication claim." /></picture>',
-                    "[portfolio](https://example.com)",
-                ]
-            )
+    (root / "README.md").write_text(
+        "\n".join(
+            [
+                '<picture><img src="claim.svg" alt="Expected publication claim." /></picture>',
+                "[portfolio](https://example.com)",
+            ]
         )
+    )
+    (root / "claim.svg").write_text(
+        '<svg xmlns="http://www.w3.org/2000/svg" role="img" '
+        'aria-label="Expected publication claim."></svg>'
+    )
+    (root / "public_claims.json").write_text(
+        json.dumps(
+            {
+                "image_alt_text": {"claim.svg": expected},
+                "required_links": ["https://example.com"],
+            }
+        )
+    )
+
+
+def validate_failure_probe(runtime_dir: Path) -> None:
+    """Prove the gate fails on stale SVG aria text."""
+    runtime_dir.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(
+        prefix="fixture-failure-", dir=runtime_dir
+    ) as tmp:
+        root = Path(tmp)
+        write_valid_fixture(root)
         (root / "claim.svg").write_text(
             '<svg xmlns="http://www.w3.org/2000/svg" role="img" '
             'aria-label="Stale publication claim."></svg>'
-        )
-        (root / "public_claims.json").write_text(
-            json.dumps(
-                {
-                    "image_alt_text": {"claim.svg": expected},
-                    "required_links": ["https://example.com"],
-                }
-            )
         )
 
         try:
@@ -138,10 +211,13 @@ def validate_failure_probe() -> None:
     fail("failure probe did not reject stale SVG aria text")
 
 
-def validate_alt_attribute_order_probe() -> None:
+def validate_alt_attribute_order_probe(runtime_dir: Path) -> None:
     """Prove README image alt text is checked regardless of attribute order."""
     expected = "Expected publication claim."
-    with tempfile.TemporaryDirectory(prefix="publication-validator-") as tmp:
+    runtime_dir.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(
+        prefix="fixture-alt-order-", dir=runtime_dir
+    ) as tmp:
         root = Path(tmp)
         (root / "README.md").write_text(
             "\n".join(
@@ -177,10 +253,13 @@ def validate_alt_attribute_order_probe() -> None:
     fail("alt attribute order probe did not reject stale README alt text")
 
 
-def validate_missing_alt_probe() -> None:
+def validate_missing_alt_probe(runtime_dir: Path) -> None:
     """Prove README img tags must include alt text."""
     expected = "Expected publication claim."
-    with tempfile.TemporaryDirectory(prefix="publication-validator-") as tmp:
+    runtime_dir.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(
+        prefix="fixture-missing-alt-", dir=runtime_dir
+    ) as tmp:
         root = Path(tmp)
         (root / "README.md").write_text(
             "\n".join(
@@ -213,16 +292,117 @@ def validate_missing_alt_probe() -> None:
     fail("missing alt probe did not reject a README img tag without alt text")
 
 
-def main() -> None:
+def validate_malformed_claims_probe(runtime_dir: Path) -> None:
+    """Prove malformed public_claims.json fails before producing bad comparisons."""
+    runtime_dir.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(
+        prefix="fixture-malformed-claims-", dir=runtime_dir
+    ) as tmp:
+        root = Path(tmp)
+        write_valid_fixture(root)
+        (root / "public_claims.json").write_text(
+            json.dumps(
+                {
+                    "image_alt_text": {"claim.svg": "Expected publication claim."},
+                    "required_links": "https://example.com",
+                }
+            )
+        )
+
+        try:
+            validate_publication(root)
+        except ValidationError as exc:
+            if "public_claims.json required_links must be a non-empty list" in str(exc):
+                return
+            fail(f"malformed claims probe raised the wrong validation error: {exc}")
+
+    fail("malformed claims probe did not reject invalid required_links")
+
+
+def validate_cli_smoke_contract(runtime_dir: Path) -> None:
+    """Exercise imports, argument parsing, success, and bad-input reporting."""
+    args = parse_args(["--root", ".", "--smoke"])
+    if args.root != Path(".") or not args.smoke:
+        fail("CLI smoke contract did not parse expected arguments")
+    if args.runtime_dir != DEFAULT_RUNTIME_DIR:
+        fail("CLI smoke contract defaulted runtime output outside the ignored path")
+
+    runtime_dir.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="fixture-smoke-", dir=runtime_dir) as tmp:
+        root = Path(tmp)
+        write_valid_fixture(root)
+        if (
+            run(
+                Namespace(root=root, smoke=True, runtime_dir=runtime_dir),
+                include_cli_smoke=False,
+                emit=False,
+            )
+            != 0
+        ):
+            fail("CLI smoke contract rejected a valid fixture")
+
+        missing_root = root / "missing"
+        if (
+            run(
+                Namespace(root=missing_root, smoke=True, runtime_dir=runtime_dir),
+                include_cli_smoke=False,
+                emit=False,
+            )
+            == 0
+        ):
+            fail("CLI smoke contract accepted missing input")
+
+
+def parse_args(argv: list[str] | None = None) -> Namespace:
+    parser = ArgumentParser(
+        description="Validate public profile publication claims and links."
+    )
+    parser.add_argument(
+        "--root",
+        type=Path,
+        default=ROOT,
+        help="repository root to validate; defaults to this script's parent repo",
+    )
+    parser.add_argument(
+        "--smoke",
+        action="store_true",
+        help="run only the no-secret CLI smoke contract",
+    )
+    parser.add_argument(
+        "--runtime-dir",
+        type=Path,
+        default=DEFAULT_RUNTIME_DIR,
+        help="local directory for generated self-test fixtures; defaults under .runtime/",
+    )
+    return parser.parse_args(argv)
+
+
+def run(
+    args: Namespace, *, include_cli_smoke: bool = True, emit: bool = True
+) -> int:
     try:
-        validate_publication(ROOT)
-        validate_failure_probe()
-        validate_alt_attribute_order_probe()
-        validate_missing_alt_probe()
+        runtime_dir = args.runtime_dir
+        if args.smoke:
+            validate_publication(args.root)
+        else:
+            validate_publication(args.root)
+            validate_failure_probe(runtime_dir)
+            validate_alt_attribute_order_probe(runtime_dir)
+            validate_missing_alt_probe(runtime_dir)
+            validate_malformed_claims_probe(runtime_dir)
+            if include_cli_smoke:
+                validate_cli_smoke_contract(runtime_dir)
     except ValidationError as exc:
-        print(f"publication validation failed: {exc}", file=sys.stderr)
-        raise SystemExit(1)
-    print("publication validation passed")
+        if emit:
+            print(f"publication validation failed: {exc}", file=sys.stderr)
+        return 1
+    if emit:
+        print("publication validation passed")
+    return 0
+
+
+def main(argv: list[str] | None = None) -> None:
+    raise SystemExit(run(parse_args(argv)))
 
 
 if __name__ == "__main__":
