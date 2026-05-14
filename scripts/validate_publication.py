@@ -44,9 +44,28 @@ class PublicClaims:
         except json.JSONDecodeError as exc:
             fail(f"public_claims.json is invalid JSON: {exc}")
 
+        if not isinstance(data, dict):
+            fail("public_claims.json must be a JSON object")
+
+        image_alt_text = data.get("image_alt_text")
+        if not isinstance(image_alt_text, dict) or not image_alt_text:
+            fail("public_claims.json image_alt_text must be a non-empty object")
+        for image_path, expected_text in image_alt_text.items():
+            if not isinstance(image_path, str) or not image_path:
+                fail("public_claims.json image_alt_text keys must be non-empty strings")
+            if not isinstance(expected_text, str) or not expected_text.strip():
+                fail("public_claims.json image_alt_text values must be non-empty strings")
+
+        required_links = data.get("required_links")
+        if not isinstance(required_links, list) or not required_links:
+            fail("public_claims.json required_links must be a non-empty list")
+        for link in required_links:
+            if not isinstance(link, str) or not link:
+                fail("public_claims.json required_links must contain only non-empty strings")
+
         return cls(
-            image_alt_text=data.get("image_alt_text", {}),
-            required_links=set(data.get("required_links", [])),
+            image_alt_text=image_alt_text,
+            required_links=set(required_links),
         )
 
     def expected_image_text(self, image_ref: ImageRef) -> str:
@@ -178,6 +197,33 @@ def validate_failure_probe(runtime_dir: Path) -> None:
     fail("failure probe did not reject stale SVG aria text")
 
 
+def validate_malformed_claims_probe(runtime_dir: Path) -> None:
+    """Prove malformed public_claims.json fails before producing bad comparisons."""
+    runtime_dir.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(
+        prefix="fixture-malformed-claims-", dir=runtime_dir
+    ) as tmp:
+        root = Path(tmp)
+        write_valid_fixture(root)
+        (root / "public_claims.json").write_text(
+            json.dumps(
+                {
+                    "image_alt_text": {"claim.svg": "Expected publication claim."},
+                    "required_links": "https://example.com",
+                }
+            )
+        )
+
+        try:
+            validate_publication(root)
+        except ValidationError as exc:
+            if "public_claims.json required_links must be a non-empty list" in str(exc):
+                return
+            fail(f"malformed claims probe raised the wrong validation error: {exc}")
+
+    fail("malformed claims probe did not reject invalid required_links")
+
+
 def validate_cli_smoke_contract(runtime_dir: Path) -> None:
     """Exercise imports, argument parsing, success, and bad-input reporting."""
     args = parse_args(["--root", ".", "--smoke"])
@@ -246,6 +292,7 @@ def run(
         else:
             validate_publication(args.root)
             validate_failure_probe(runtime_dir)
+            validate_malformed_claims_probe(runtime_dir)
             if include_cli_smoke:
                 validate_cli_smoke_contract(runtime_dir)
     except ValidationError as exc:
