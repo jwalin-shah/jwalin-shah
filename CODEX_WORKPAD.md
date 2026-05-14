@@ -140,3 +140,22 @@ git diff --check
 ```
 
 Result: passed.
+
+## Slice: error boundary hardening - WP-191
+
+Branch: `codex/WP-191-error-boundary-hardening`
+
+Hardened the `public_claims.json` parser boundary in
+`scripts/validate_publication.py` so malformed claims schema fails closed with
+deterministic validation errors before downstream comparison logic can produce
+misleading output. Added a negative self-test fixture for `required_links`
+provided as a string instead of a list.
+
+Validation:
+
+```bash
+python3 scripts/validate_publication.py
+git diff --check
+```
+
+Result: passed.
