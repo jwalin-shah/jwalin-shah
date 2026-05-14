@@ -13,6 +13,18 @@
 
 ---
 
+### Local validation
+
+Before PR handoff, run:
+
+```bash
+python3 scripts/validate_publication.py
+```
+
+This executable gate checks the canonical public claims file against README image references, SVG aria labels, and required public links.
+
+---
+
 ### Selected work
 
 **[tensor-logic](https://github.com/jwalin-shah/tensor-logic)** — working through Domingos (2025).
