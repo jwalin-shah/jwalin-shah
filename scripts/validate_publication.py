@@ -93,6 +93,7 @@ class PublicationValidator:
             image_path = self.root / image_ref.path
             if not image_path.exists():
                 fail(f"README.md references missing image: {image_ref.path}")
+            self.claims.expected_image_text(image_ref)
             if image_ref.alt_text:
                 self._validate_public_image_claim_text(
                     image_ref,
@@ -136,12 +137,24 @@ def validate_publication(root: Path) -> None:
 
 
 def write_publication_probe_fixture(
-    root: Path, *, svg_aria: str, readme_alt: str, expected: str
+    root: Path,
+    *,
+    svg_aria: str,
+    readme_alt: str,
+    expected: str,
+    extra_source: str | None = None,
+    extra_source_claim: str | None = None,
 ) -> None:
+    source_lines = []
+    if extra_source:
+        source_lines.append(f'  <source srcset="{extra_source}" />')
     (root / "README.md").write_text(
         "\n".join(
             [
-                f'<picture><img src="claim.svg" alt="{readme_alt}" /></picture>',
+                "<picture>",
+                *source_lines,
+                f'  <img src="claim.svg" alt="{readme_alt}" />',
+                "</picture>",
                 "[portfolio](https://example.com)",
             ]
         )
@@ -150,10 +163,15 @@ def write_publication_probe_fixture(
         '<svg xmlns="http://www.w3.org/2000/svg" role="img" '
         f'aria-label="{svg_aria}"></svg>'
     )
+    if extra_source:
+        (root / extra_source).write_bytes(b"publication probe image")
+    image_alt_text = {"claim.svg": expected}
+    if extra_source and extra_source_claim:
+        image_alt_text[extra_source] = extra_source_claim
     (root / "public_claims.json").write_text(
         json.dumps(
             {
-                "image_alt_text": {"claim.svg": expected},
+                "image_alt_text": image_alt_text,
                 "required_links": ["https://example.com"],
             }
         )
@@ -182,6 +200,29 @@ def assert_publication_probe_fails(
     fail(f"failure probe did not reject {expected_error}")
 
 
+def assert_non_svg_source_claim_is_required() -> None:
+    with tempfile.TemporaryDirectory(prefix="publication-validator-") as tmp:
+        root = Path(tmp)
+        expected = "Expected publication claim."
+        write_publication_probe_fixture(
+            root,
+            svg_aria=expected,
+            readme_alt=expected,
+            expected=expected,
+            extra_source="claim.png",
+        )
+
+        try:
+            validate_publication(root)
+        except ValidationError as exc:
+            expected_error = "public_claims.json is missing image_alt_text for claim.png"
+            if expected_error in str(exc):
+                return
+            fail(f"non-SVG source probe raised the wrong validation error: {exc}")
+
+    fail("non-SVG source probe did not require a public_claims.json entry")
+
+
 def validate_failure_probe() -> None:
     """Prove both public image claim text call paths reject stale claims."""
     expected = "Expected publication claim."
@@ -197,6 +238,7 @@ def validate_failure_probe() -> None:
         expected=expected,
         expected_error="README alt text for claim.svg does not match public_claims.json",
     )
+    assert_non_svg_source_claim_is_required()
 
 
 def main() -> None:
