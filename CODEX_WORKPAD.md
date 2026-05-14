@@ -96,3 +96,22 @@ git diff --check
 ```
 
 Result: passed.
+
+## Slice: duplicate logic consolidation - WP-107
+
+Branch: `codex/WP-107-duplicate-logic-consolidation`
+
+Consolidated public image claim text comparison in
+`scripts/validate_publication.py` behind one canonical helper:
+`_validate_public_image_claim_text`. README alt text and SVG aria-label checks
+now route through that shared rule, and the failure probe covers both stale
+claim paths.
+
+Validation:
+
+```bash
+python3 scripts/validate_publication.py
+git diff --check
+```
+
+Result: passed.
