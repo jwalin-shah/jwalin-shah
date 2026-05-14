@@ -34,17 +34,17 @@ def claims(root: Path) -> dict:
 class ReadmeImageParser(HTMLParser):
     def __init__(self) -> None:
         super().__init__()
-        self.refs: list[tuple[str, str]] = []
+        self.refs: list[tuple[str, str | None, bool]] = []
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         attr_map = {name: value or "" for name, value in attrs}
         if tag == "source" and "srcset" in attr_map:
-            self.refs.append((attr_map["srcset"], ""))
+            self.refs.append((attr_map["srcset"], None, False))
         if tag == "img" and "src" in attr_map:
-            self.refs.append((attr_map["src"], attr_map.get("alt", "")))
+            self.refs.append((attr_map["src"], attr_map.get("alt"), True))
 
 
-def readme_image_refs(root: Path) -> list[tuple[str, str]]:
+def readme_image_refs(root: Path) -> list[tuple[str, str | None, bool]]:
     text = (root / "README.md").read_text()
     parser = ReadmeImageParser()
     parser.feed(text)
@@ -65,7 +65,7 @@ def validate_images(root: Path) -> None:
     if not refs:
         fail("README.md does not reference any publication images")
 
-    for ref, alt in refs:
+    for ref, alt, requires_alt in refs:
         expected = image_claims.get(ref)
         if not expected:
             fail(f"public_claims.json is missing image_alt_text for {ref}")
@@ -78,7 +78,9 @@ def validate_images(root: Path) -> None:
                 fail(f"{ref} is missing an aria-label")
             if aria != expected:
                 fail(f"{ref} aria-label does not match public_claims.json")
-            if alt and alt != expected:
+            if requires_alt and not alt:
+                fail(f"README img tag for {ref} is missing alt text")
+            if alt is not None and alt != expected:
                 fail(f"README alt text for {ref} does not match public_claims.json")
 
 
@@ -175,11 +177,48 @@ def validate_alt_attribute_order_probe() -> None:
     fail("alt attribute order probe did not reject stale README alt text")
 
 
+def validate_missing_alt_probe() -> None:
+    """Prove README img tags must include alt text."""
+    expected = "Expected publication claim."
+    with tempfile.TemporaryDirectory(prefix="publication-validator-") as tmp:
+        root = Path(tmp)
+        (root / "README.md").write_text(
+            "\n".join(
+                [
+                    '<picture><img src="claim.svg" /></picture>',
+                    "[portfolio](https://example.com)",
+                ]
+            )
+        )
+        (root / "claim.svg").write_text(
+            '<svg xmlns="http://www.w3.org/2000/svg" role="img" '
+            'aria-label="Expected publication claim."></svg>'
+        )
+        (root / "public_claims.json").write_text(
+            json.dumps(
+                {
+                    "image_alt_text": {"claim.svg": expected},
+                    "required_links": ["https://example.com"],
+                }
+            )
+        )
+
+        try:
+            validate_publication(root)
+        except ValidationError as exc:
+            if "README img tag for claim.svg is missing alt text" in str(exc):
+                return
+            fail(f"missing alt probe raised the wrong validation error: {exc}")
+
+    fail("missing alt probe did not reject a README img tag without alt text")
+
+
 def main() -> None:
     try:
         validate_publication(ROOT)
         validate_failure_probe()
         validate_alt_attribute_order_probe()
+        validate_missing_alt_probe()
     except ValidationError as exc:
         print(f"publication validation failed: {exc}", file=sys.stderr)
         raise SystemExit(1)
