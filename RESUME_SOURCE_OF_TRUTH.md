@@ -17,11 +17,13 @@ The master résumé should optimize for AI systems, agent infrastructure, evalua
 ## One-page master structure
 
 1. **Experience:** OpenHuman → Break the Web / LiveLM → Skild AI
-2. **Selected systems:** Bridge → OfficeQA Arena → Voice Engine → Jarvis
+2. **Selected systems:** Bridge → OfficeQA Arena → Voice Engine
 3. **Skills:** systems and evaluation capabilities first; tools second
 4. **Education and leadership:** one compact block
 
-Jarvis stays as a compact fourth system because its public latency, retrieval, throughput, and hallucination-gate evidence is unusually exact, and because it connects the local-first work to OpenHuman. If a tailored version needs more white space or more role-specific material, Jarvis is the first project to cut or swap.
+*(Jarvis is variant-only — see master decision below.)*
+
+**Master decision (2026-08-02):** Jarvis is off the one-page master. Exact gates remain for a local-agent / Apple variant; on the master page they duplicate OpenHuman and the archived repo reads stale next to Bridge / OfficeQA / Voice.
 
 ## Claim ledger
 

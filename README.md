@@ -31,8 +31,7 @@ Spawn → verify → deliver with deny-default sandboxing, leased worktrees, and
 **[voice-engine-swift](https://github.com/jwalin-shah/voice-engine-swift)** — on-device speech.
 Fully local Moonshine ASR + CoreML pipeline. **348/349** tests pass; one isolated macOS CoreML regression stated honestly. WER/RTF harnesses for model tradeoffs.
 
-**[jarvis-ai-assistant](https://github.com/jwalin-shah/jarvis-ai-assistant)** — local-first personal agent *(archived)*.
-0.42 s mean / 1.15 s p95 · Hit\@5 0.88 · 96.2% hallucination-gate · 37 configs on 8 GB M2 Air.
+
 
 ---
 
