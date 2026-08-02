@@ -12,10 +12,11 @@
     "https://github.com/tinyhumansai/openhuman",
     "https://github.com/jwalin-shah/officeqa-arena",
     "https://github.com/jwalin-shah/voice-engine-swift",
-    "https://github.com/jwalin-shah/tensor-logic"
+    "https://github.com/jwalin-shah/jarvis-ai-assistant"
   ],
   "positioning": {
-    "title": "AI Systems & Reliability Engineer",
-    "pillars": ["Agent Evaluation", "Grounded Retrieval", "Verification Infrastructure"]
+    "title": "AI Systems Engineer",
+    "pillars": ["Agent Reliability", "Evaluation", "Local Inference"],
+    "source_of_truth": "RESUME_SOURCE_OF_TRUTH.md"
   }
 }
