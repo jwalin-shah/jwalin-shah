@@ -1,22 +1,26 @@
 {
   "image_alt_text": {
-    "hero-light.svg": "Jwalin Shah — Systems that constrain, observe, and verify probabilistic agents. OpenHuman memory · Skild ops · measured local AI.",
-    "hero-dark.svg": "Jwalin Shah — Systems that constrain, observe, and verify probabilistic agents. OpenHuman memory · Skild ops · measured local AI.",
-    "stats-light.svg": "Language mix and recent activity across public repositories.",
-    "stats-dark.svg": "Language mix and recent activity across public repositories."
+    "hero-light.svg": "Jwalin Shah — Reliable agent systems, measured end to end.",
+    "hero-dark.svg": "Jwalin Shah — Reliable agent systems, measured end to end.",
+    "stats-light.svg": "Proof of work strip: 69 PRs, 77 invariants, 4,400+ evaluations, on-device + 5 robot platforms.",
+    "stats-dark.svg": "Proof of work strip: 69 PRs, 77 invariants, 4,400+ evaluations, on-device + 5 robot platforms."
   },
   "required_links": [
     "https://jwalin-shah.github.io",
     "mailto:jwalinshah13@gmail.com",
     "https://linkedin.com/in/jwalin-shah",
     "https://github.com/tinyhumansai/openhuman",
-    "https://github.com/jwalin-shah/officeqa-arena",
     "https://github.com/jwalin-shah/voice-engine-swift",
-    "https://github.com/jwalin-shah/jarvis-ai-assistant"
+    "https://github.com/jwalin-shah/officeqa-arena"
   ],
   "positioning": {
-    "title": "AI Systems Engineer",
-    "pillars": ["Agent Reliability", "Evaluation", "Local Inference"],
-    "source_of_truth": "RESUME_SOURCE_OF_TRUTH.md"
-  }
+    "thesis": "Reliable agent systems, measured end to end.",
+    "pillars": ["orchestration", "verification", "evaluation", "memory", "local inference"]
+  },
+  "selected_systems_order": [
+    "openhuman",
+    "voice-engine-swift",
+    "officeqa-arena",
+    "bridge"
+  ]
 }
