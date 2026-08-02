@@ -1,33 +1,33 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 160" width="900" height="160" role="img" aria-label="Proof of work: open source, verification, evaluation, local systems, robotics ops.">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 160" width="900" height="160" role="img" aria-label="Capability strip: Rust+Go, Swift+CoreML, formal assurance, robotics ops.">
   <defs>
     <style>
       .mono { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace; }
       .prompt { fill: #e07a5f; font-weight: 700; }
       .head { fill: #8a8278; font-size: 11px; letter-spacing: 0.06em; }
-      .num  { fill: #e07a5f; font-weight: 700; font-size: 18px; }
+      .num  { fill: #e07a5f; font-weight: 700; font-size: 16px; }
       .lbl  { fill: #d4cdc2; font-size: 13px; }
     </style>
   </defs>
   <rect width="900" height="160" fill="#0e1410" rx="10"/>
-  <text x="40" y="32" class="mono prompt" font-size="13">$ ./proof --strip</text>
+  <text x="40" y="32" class="mono prompt" font-size="13">$ ./stack --strip</text>
   <g transform="translate(40, 58)">
-    <text class="mono head">OPEN SOURCE</text>
-    <text y="28" class="mono num">69</text>
-    <text y="48" class="mono lbl">merged upstream PRs</text>
+    <text class="mono head">RUST + GO</text>
+    <text y="28" class="mono num">production core</text>
+    <text y="48" class="mono lbl">memory · orchestration</text>
   </g>
-  <g transform="translate(230, 58)">
-    <text class="mono head">VERIFICATION</text>
-    <text y="28" class="mono num">77</text>
-    <text y="48" class="mono lbl">documented invariants</text>
+  <g transform="translate(250, 58)">
+    <text class="mono head">SWIFT + COREML</text>
+    <text y="28" class="mono num">fully local ASR</text>
+    <text y="48" class="mono lbl">measured on-device</text>
   </g>
-  <g transform="translate(440, 58)">
-    <text class="mono head">EVALUATION</text>
-    <text y="28" class="mono num">4,400+</text>
-    <text y="48" class="mono lbl">benchmark runs</text>
+  <g transform="translate(490, 58)">
+    <text class="mono head">TLA+ · Z3 · LEAN</text>
+    <text y="28" class="mono num">formal assurance</text>
+    <text y="48" class="mono lbl">leases · gates · proofs</text>
   </g>
-  <g transform="translate(640, 58)">
-    <text class="mono head">LOCAL · ROBOTICS</text>
-    <text y="28" class="mono num">on-device</text>
-    <text y="48" class="mono lbl">+ 5 robot platforms</text>
+  <g transform="translate(720, 58)">
+    <text class="mono head">ROBOTICS OPS</text>
+    <text y="28" class="mono num">5 platforms</text>
+    <text y="48" class="mono lbl">eval · demos · QA</text>
   </g>
 </svg>
