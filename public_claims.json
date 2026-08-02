@@ -1,7 +1,7 @@
 {
   "image_alt_text": {
-    "hero-light.svg": "Jwalin Shah \u2014 Systems that constrain, observe, and verify probabilistic agents. OpenHuman memory \u00b7 Skild ops \u00b7 measured local AI.",
-    "hero-dark.svg": "Jwalin Shah \u2014 Systems that constrain, observe, and verify probabilistic agents. OpenHuman memory \u00b7 Skild ops \u00b7 measured local AI.",
+    "hero-light.svg": "Jwalin Shah — Systems that constrain, observe, and verify probabilistic agents. OpenHuman memory · Skild ops · measured local AI.",
+    "hero-dark.svg": "Jwalin Shah — Systems that constrain, observe, and verify probabilistic agents. OpenHuman memory · Skild ops · measured local AI.",
     "stats-light.svg": "Language mix and recent activity across public repositories.",
     "stats-dark.svg": "Language mix and recent activity across public repositories."
   },
@@ -9,8 +9,13 @@
     "https://jwalin-shah.github.io",
     "mailto:jwalinshah13@gmail.com",
     "https://linkedin.com/in/jwalin-shah",
-    "https://github.com/jwalin-shah/tensor-logic",
     "https://github.com/tinyhumansai/openhuman",
-    "https://github.com/jwalin-shah/voice-engine-swift"
-  ]
+    "https://github.com/jwalin-shah/officeqa-arena",
+    "https://github.com/jwalin-shah/voice-engine-swift",
+    "https://github.com/jwalin-shah/tensor-logic"
+  ],
+  "positioning": {
+    "title": "AI Systems & Reliability Engineer",
+    "pillars": ["Agent Evaluation", "Grounded Retrieval", "Verification Infrastructure"]
+  }
 }

@@ -7,7 +7,9 @@
 
 </div>
 
-**AI Systems Engineer** — agent infrastructure · evaluation · local-first AI.
+**AI Systems & Reliability Engineer** — agent evaluation · grounded retrieval · verification infrastructure.
+
+> Builds systems that constrain, observe, and verify probabilistic agents under real-world constraints.
 
 Core contributor to [OpenHuman](https://github.com/tinyhumansai/openhuman) (35k+ ★). Previously Data Operations Lead at Skild AI ($1B Series C).
 
@@ -20,17 +22,20 @@ Core contributor to [OpenHuman](https://github.com/tinyhumansai/openhuman) (35k+
 **[OpenHuman](https://github.com/tinyhumansai/openhuman)** — core contributor *(tinyhumansai)*.
 Own `life_capture` / `curated_memory` in the Rust core: on-device personal index over iMessage, Gmail, Calendar, Contacts. Hybrid retrieval (FTS + sqlite-vec). 80+ upstream commits spanning memory, chat reliability, and security-policy hardening.
 
-**[voice-engine-swift](https://github.com/jwalin-shah/voice-engine-swift)** — local dictation, measured.
-`26 ASR models · 560 clips · moonshine-tiny 0.2177 WER / 0.05 RTF` — near-equal accuracy to a 2.5B model at 14× lower RTF. Real-time on device, no network, no clipboard.
+**Bridge** *(private)* — reliable coding-agent execution.
+Spawn / verify / deliver with default-deny OS sandboxing, isolated worktrees, and independent fresh-checkout verification. 77 pipeline invariants with property tests + TLA+ / Z3 / Lean layers. The agent cannot certify its own success. Happy to walk through architecture.
 
-**[tensor-logic](https://github.com/jwalin-shah/tensor-logic)** — Domingos (2025), empirically.
-`3 scalars vs 71M MLP · F1≈1.000 zero-shot to n=1024 · OSS graphs to 1,532 nodes.` Limits documented (parity / XOR) — not hidden.
+**Knowledge Engine** *(private)* — local code & axiom graph.
+cocoindex + Neo4j + tldr CALLS as the retrieval substrate Bridge consumes at spawn. Catch-up indexing certified with parity gates (disk ↔ graph must match, or fail closed).
 
 **[officeqa-arena](https://github.com/jwalin-shah/officeqa-arena)** — Sentient Arena Cohort 0.
-`184.5/246 (75%) · $1.71 · 3,600+ evals · 9 architecture generations.` Retrieval and tool selection — not model “reasoning” — drove most failures.
+Grounded financial QA over Treasury docs. Ranked top tier on a 246-task benchmark; retrieval and tool selection — not model “reasoning” — drove most failures. [research.pdf](https://github.com/jwalin-shah/officeqa-arena/blob/main/research.pdf).
 
-**Bridge** *(private)* — reliable coding-agent execution.
-Default-deny OS sandbox · isolated worktrees · fresh-checkout verification. The agent cannot certify its own success. Happy to walk through architecture.
+**[voice-engine-swift](https://github.com/jwalin-shah/voice-engine-swift)** — local dictation, measured.
+`26 ASR models · 560 clips · moonshine-tiny 0.2177 WER / 0.05 RTF` — near-equal accuracy to a 2.5B model at 14× lower RTF. Real-time on device.
+
+**[tensor-logic](https://github.com/jwalin-shah/tensor-logic)** — Domingos (2025), empirically.
+Runnable demos from einsum → continual learning. Limits documented — not hidden.
 
 ---
 
@@ -55,9 +60,9 @@ Default-deny OS sandbox · isolated worktrees · fresh-checkout verification. Th
 
 ### Focus
 
-`agent sandboxing & verification` · `evaluation harnesses` · `on-device inference (MLX / CoreML)` · `hybrid retrieval` · `MCP / tool-use reliability` · `failure-mode taxonomies`
+`agent verification & fail-closed gates` · `grounded retrieval` · `evaluation harnesses` · `sandboxing` · `failure-mode taxonomies` · `on-device inference (MLX / CoreML)`
 
 ### Reach me
 
-roles in agent infrastructure, eval & reliability, or local-first AI.
+roles in agent reliability, eval infrastructure, or grounded retrieval systems.
 ✉️ [jwalinshah13@gmail.com](mailto:jwalinshah13@gmail.com) · 💼 [linkedin](https://linkedin.com/in/jwalin-shah) · 🌐 [portfolio](https://jwalin-shah.github.io)
