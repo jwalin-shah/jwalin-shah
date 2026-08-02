@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 280" width="900" height="280" role="img" aria-label="Languages by bytes across 19 public repos: Python 80%, TypeScript 9%, JavaScript 3%, Svelte 3%, Shell 3%, Other 2%. 26-week commit heatmap.">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 280" width="900" height="280" role="img" aria-label="Language mix and recent activity across public repositories.">
   <defs>
     <style>
       .mono   { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace; }

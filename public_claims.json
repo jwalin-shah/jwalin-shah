@@ -1,14 +1,16 @@
 {
   "image_alt_text": {
-    "hero-light.svg": "Jwalin Shah — I measure what LLMs do. 3 scalars beat 71M parameters at 0.975 F1 vs 0.331 on transitive closure.",
-    "hero-dark.svg": "Jwalin Shah — I measure what LLMs do. 3 scalars beat 71M parameters at 0.975 F1 vs 0.331 on transitive closure.",
-    "stats-light.svg": "Languages by bytes across 19 public repos: Python 80%, TypeScript 9%, JavaScript 3%, Svelte 3%, Shell 3%, Other 2%. 26-week commit heatmap.",
-    "stats-dark.svg": "Languages by bytes across 19 public repos: Python 80%, TypeScript 9%, JavaScript 3%, Svelte 3%, Shell 3%, Other 2%. 26-week commit heatmap."
+    "hero-light.svg": "Jwalin Shah \u2014 Systems that constrain, observe, and verify probabilistic agents. OpenHuman memory \u00b7 Skild ops \u00b7 measured local AI.",
+    "hero-dark.svg": "Jwalin Shah \u2014 Systems that constrain, observe, and verify probabilistic agents. OpenHuman memory \u00b7 Skild ops \u00b7 measured local AI.",
+    "stats-light.svg": "Language mix and recent activity across public repositories.",
+    "stats-dark.svg": "Language mix and recent activity across public repositories."
   },
   "required_links": [
     "https://jwalin-shah.github.io",
     "mailto:jwalinshah13@gmail.com",
     "https://linkedin.com/in/jwalin-shah",
-    "https://github.com/jwalin-shah/tensor-logic"
+    "https://github.com/jwalin-shah/tensor-logic",
+    "https://github.com/tinyhumansai/openhuman",
+    "https://github.com/jwalin-shah/voice-engine-swift"
   ]
 }

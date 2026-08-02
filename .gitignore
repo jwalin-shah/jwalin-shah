@@ -3,3 +3,6 @@
 
 # Local validator/generated runtime output
 /.runtime/
+.tldr/
+__pycache__/
+.runtime/

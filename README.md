@@ -2,43 +2,35 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="hero-dark.svg" />
-  <img src="hero-light.svg" alt="Jwalin Shah — I measure what LLMs do. 3 scalars beat 71M parameters at 0.975 F1 vs 0.331 on transitive closure." width="900" />
+  <img src="hero-light.svg" alt="Jwalin Shah — Systems that constrain, observe, and verify probabilistic agents. OpenHuman memory · Skild ops · measured local AI." width="900" />
 </picture>
 
 </div>
 
-**AI Systems Engineer** — evaluation · grounded reasoning · on-device inference. Currently a Research Contributor at Sentient Arena (Cohort 0).
+**AI Systems Engineer** — agent infrastructure · evaluation · local-first AI.
 
-[**↗ portfolio**](https://jwalin-shah.github.io) · [↗ email](mailto:jwalinshah13@gmail.com) · [↗ linkedin](https://linkedin.com/in/jwalin-shah)
+Core contributor to [OpenHuman](https://github.com/tinyhumansai/openhuman) (35k+ ★). Previously Data Operations Lead at Skild AI ($1B Series C).
 
----
-
-### Local validation
-
-Before PR handoff, run:
-
-```bash
-python3 scripts/validate_publication.py
-```
-
-This executable gate checks the canonical public claims file against README image references, SVG aria labels, and required public links.
-It also runs a no-secret CLI smoke contract and writes generated self-test fixtures under ignored `.runtime/publication-validator/`; to smoke-check a different checkout directly, use `python3 scripts/validate_publication.py --smoke --root <path>`.
+[**↗ portfolio**](https://jwalin-shah.github.io) · [↗ email](mailto:jwalinshah13@gmail.com) · [↗ linkedin](https://linkedin.com/in/jwalin-shah) · [↗ resume](https://github.com/jwalin-shah/jwalin-shah/raw/main/Jwalin_Shah_Resume_General.pdf)
 
 ---
 
 ### Selected work
 
-**[tensor-logic](https://github.com/jwalin-shah/tensor-logic)** — working through Domingos (2025).
-A 3-scalar tensor-logic recurrence vs. a 71M-parameter MLP, same task. `mean F1 0.975 vs 0.331 · biggest graph 1,532 nodes (sympy) · zero-shot to real Python imports.` Honestly documented limits — parity remains unlearnable.
+**[OpenHuman](https://github.com/tinyhumansai/openhuman)** — core contributor *(tinyhumansai)*.
+Own `life_capture` / `curated_memory` in the Rust core: on-device personal index over iMessage, Gmail, Calendar, Contacts. Hybrid retrieval (FTS + sqlite-vec). 80+ upstream commits spanning memory, chat reliability, and security-policy hardening.
 
-**[officeqa-arena](https://github.com/jwalin-shah/officeqa-arena)** — grounded financial QA, Sentient Arena.
-`184.5/246 (75.0%) · $1.71 total · 9 architectural generations.` Headline finding: shell `grep` on raw TXT beat an 11GB SQLite + 10-component consensus pipeline. 48% of failures = wrong table/row/column extraction.
+**[voice-engine-swift](https://github.com/jwalin-shah/voice-engine-swift)** — local dictation, measured.
+`26 ASR models · 560 clips · moonshine-tiny 0.2177 WER / 0.05 RTF` — near-equal accuracy to a 2.5B model at 14× lower RTF. Real-time on device, no network, no clipboard.
 
-**[jarvis-ai-assistant](https://github.com/jwalin-shah/jarvis-ai-assistant)** — privacy-first iMessage assistant on an 8GB M2 Air.
-`mean draft 0.42s · p95 1.15s · retrieval Hit@5 0.88 · hallucination gate 96.2% pass.` MLX-native, zero cloud dependencies. Evaluated 37 model configs.
+**[tensor-logic](https://github.com/jwalin-shah/tensor-logic)** — Domingos (2025), empirically.
+`3 scalars vs 71M MLP · F1≈1.000 zero-shot to n=1024 · OSS graphs to 1,532 nodes.` Limits documented (parity / XOR) — not hidden.
 
-**[openhuman](https://github.com/tinyhumansai/openhuman)** — open-source agentic desktop assistant *(contributor)*.
-`GNU · macOS · Windows · Linux.` Local-first KB (Neocortex), background self-learning loops (Subconscious), screen intelligence, inline autocomplete + voice, all on device.
+**[officeqa-arena](https://github.com/jwalin-shah/officeqa-arena)** — Sentient Arena Cohort 0.
+`184.5/246 (75%) · $1.71 · 3,600+ evals · 9 architecture generations.` Retrieval and tool selection — not model “reasoning” — drove most failures.
+
+**Bridge** *(private)* — reliable coding-agent execution.
+Default-deny OS sandbox · isolated worktrees · fresh-checkout verification. The agent cannot certify its own success. Happy to walk through architecture.
 
 ---
 
@@ -46,7 +38,7 @@ A 3-scalar tensor-logic recurrence vs. a 71M-parameter MLP, same task. `mean F1 
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="stats-dark.svg" />
-  <img src="stats-light.svg" alt="Languages by bytes across 19 public repos: Python 80%, TypeScript 9%, JavaScript 3%, Svelte 3%, Shell 3%, Other 2%. 26-week commit heatmap." width="900" />
+  <img src="stats-light.svg" alt="Language mix and recent activity across public repositories." width="900" />
 </picture>
 
 </div>
@@ -57,14 +49,15 @@ A 3-scalar tensor-logic recurrence vs. a 71M-parameter MLP, same task. `mean F1 
 
 | | | |
 |---|---|---|
-| **Sentient Arena** | Research Contributor (Cohort 0) | grounded financial reasoning · eval infra · failure-mode analysis |
-| **Skild AI** | Data Operations Lead | robotics data systems · 5 platforms · 25+ operators · task success **+40%**, overhead **−50%** |
+| **OpenHuman** | Core Contributor | on-device personal memory · hybrid retrieval · 80+ commits |
+| **Skild AI** | Data Operations Lead | 5 robotic platforms · 30+ operators · task success **+40%**, overhead **−50%** · 25+ Series C demos |
+| **Break the Web / LiveLM** | AI Systems Engineer | real-time grounding · MCP tool-use eval · hit/partial/stale/miss abstention |
 
 ### Focus
 
-`grounded LLM reasoning` · `evaluation harnesses` · `deterministic computation` · `tool-augmented agents` · `hallucination measurement` · `on-device inference (MLX)` · `privacy-first architectures`
+`agent sandboxing & verification` · `evaluation harnesses` · `on-device inference (MLX / CoreML)` · `hybrid retrieval` · `MCP / tool-use reliability` · `failure-mode taxonomies`
 
 ### Reach me
 
-best for research collabs, eval & reliability work, on-device AI.
+roles in agent infrastructure, eval & reliability, or local-first AI.
 ✉️ [jwalinshah13@gmail.com](mailto:jwalinshah13@gmail.com) · 💼 [linkedin](https://linkedin.com/in/jwalin-shah) · 🌐 [portfolio](https://jwalin-shah.github.io)
